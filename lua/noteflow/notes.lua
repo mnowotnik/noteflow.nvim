@@ -203,7 +203,9 @@ function M.parse_note(line_iter, fn)
       tags_set[tag] = 1
     end
     for w in wikilinks_iterator(line) do
-      self._wikilinks[w.link:lower()] = idx
+      if w.link then
+        self._wikilinks[w.link:lower()] = idx
+      end
     end
   end
   if type(self.title) ~= 'string' then
