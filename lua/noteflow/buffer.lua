@@ -63,7 +63,6 @@ end
 
 
 function M.save_meta_in_current_buffer(meta_str, boundary, fm_start, fm_end)
-  print('hi')
   local view = vim.fn.winsaveview()
   if fm_end then
     local cut_start = fm_start + 1
@@ -75,7 +74,7 @@ function M.save_meta_in_current_buffer(meta_str, boundary, fm_start, fm_end)
     vim.fn.execute("normal A\n" .. meta_str)
   else
     vim.fn.setpos('.', {0,0,0,1})
-    vim.fn.execute(utils.interp("normal i${b}\n${fm}${b}", {b=boundary,fm=meta_str}))
+    vim.fn.execute(utils.interp("normal i${b}\n${fm}\n${b}", {b=boundary,fm=meta_str}))
   end
   vim.cmd'stopinsert'
   vim.fn.winrestview(view)

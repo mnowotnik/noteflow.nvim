@@ -16,7 +16,7 @@ function config:setup(opts)
 end
 
 function config:vault_path()
-  return path:new(vim.g.noteflow_vault_path):expand()
+  return path:new(vim.g.noteflow_vault_path):expand() or ""
 end
 
 return config

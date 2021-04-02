@@ -5,3 +5,4 @@ set rtp+=deps/popup.nvim
 runtime plugin/plenary.vim
 runtime plugin/telescope.vim
 runtime plugin/noteflow.vim
+runtime ftdetect/noteflow.vim

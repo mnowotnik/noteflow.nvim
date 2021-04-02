@@ -25,9 +25,8 @@ end
 
 describe('Following wikilink', function()
 
-  after_each(function()
-    vim.cmd[[bufdo! bwipeout]]
-  end)
+  after_each(close_all_buffers)
+
   describe('should open a note', function()
 
     it('if cursor is on the leftmost [ character', function ()

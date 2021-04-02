@@ -406,8 +406,19 @@ function M.insert_link()
   find_note(opts)
 end
 
-function _G.noteflow_ftdetect()
-  vim.cmd[[set filetype+=.noteflow]]
+function M.noteflow_ftdetect()
+  if config:vault_path() == "" then
+    return
+  end
+  if string.match(vim.bo.filetype, "noteflow") then
+    return
+  end
+
+  if vim.startswith(vim.fn.expand('%:p:h'), config:vault_path()) then
+    local old_ft = vim.bo.filetype or ""
+    old_ft = vim.trim(old_ft)
+    vim.bo.filetype = old_ft ~= "" and old_ft .. ".noteflow" or "noteflow"
+  end
 end
 
 function M.daily_note()

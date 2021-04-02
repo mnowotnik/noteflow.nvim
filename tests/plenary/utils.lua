@@ -1,5 +1,7 @@
 local path = require('plenary.path')
 
+DATETIME_PATTERN = '%d%d%d%d%-%d%d%-%d%dT%d%d:%d%d:%d%d'
+
 function jump_to_word(word)
   word = word:gsub('/', '\\\\/')
 	vim.cmd([[execute "normal /]] .. word .. [[\<cr>"]])
@@ -68,4 +70,30 @@ end
 
 function path_in_vault(...)
   return path:new(get_vault_path(),...):absolute()
+end
+
+function close_all_buffers()
+  vim.cmd[[bufdo! bwipeout]]
+end
+
+function read_note_lines(rel_note_path)
+  return path:new(get_vault_path(), rel_note_path):readlines()
+end
+
+function get_note_frontmatter(rel_note_path)
+  local lines = read_note_lines(rel_note_path)
+  assert.are.equal('---',lines[1], "Invalid frontmatter. Line 1:" .. rel_note_path)
+  local r = {}
+  local end_nr
+  for idx,line in ipairs(lines) do
+    if idx > 1 and line == '---' then
+      end_nr = idx
+      break
+    end
+    if idx > 1 then
+      table.insert(r, line)
+    end
+  end
+  assert.is_not_nil(end_nr, "Invalid frontmatter. End not found: " .. rel_note_path)
+  return r
 end
