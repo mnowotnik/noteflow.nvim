@@ -1,5 +1,8 @@
 
 /deps
+/github-actions-setup.sh
+/_neovim
+
 # Compiled Lua sources
 luac.out
 

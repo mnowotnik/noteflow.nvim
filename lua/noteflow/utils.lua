@@ -1,32 +1,65 @@
 
+local M = {
+  -- log = require('plenary.log').new({
+  --   use_file = false,
+  --   level = require('os').getenv('DEBUG_NOTEFLOW') and 'debug' or 'info'
+  -- })
+}
 
-local M = {}
+local log = {
+  level = require('os').getenv('DEBUG_NOTEFLOW') and 'debug' or 'info'
+}
+
+function log.info(msg)
+  print(msg)
+end
+
+function log.debug(msg)
+  if log.level ~= 'debug' then
+    return
+  end
+  print(msg)
+end
+
+function log.fmt_debug(msg, ...)
+  if log.level ~= 'debug' then
+    return
+  end
+	local args = {...}
+	local vars = {}
+	for _,arg in ipairs(args) do
+		table.insert(vars, vim.inspect(arg))
+	end
+	print(msg:format(unpack(vars)))
+end
+
+M.log = log
 
 function M.wikilinks_iterator(line)
-	local parse_wikilink = function(wikilink)
-		local title, desc = string.match(wikilink, '(.+[^%s])%s*|(.+)')
+  local parse_wikilink = function(wikilink)
+    local title, desc = string.match(wikilink, '(.+[^%s])%s*|(.+)')
     if not title then
       wikilink = vim.trim(wikilink)
       if wikilink:sub(1,1) == '|' then
         return nil, wikilink
       end
     end
-		return title or wikilink, desc
-	end
+    return title or wikilink, desc
+  end
 
   local iter = string.gmatch(line, '()(%[%[.+%]%])()')
-	return function()
-		local startpos, match, endpos = iter()
-		if not match then return end
-		local link_content = string.match(match, '%[%[%s*([^%s].+[^%s])%s*%]%]')
-		local r = {startpos=startpos,endpos=endpos-1}
-		if link_content then
-			local link, description = parse_wikilink(link_content)
-			r.link = link
-			r.description = description
-		end
-		return r
-	end
+  return function()
+    local startpos, match, endpos = iter()
+    if not match then return end
+    local link_content = string.match(match, '%[%[%s*([^%s].+[^%s])%s*%]%]')
+    local r = {startpos=startpos,endpos=endpos-1}
+    if link_content then
+      local link, description = parse_wikilink(link_content)
+      r.link = link
+      r.description = description
+    end
+    return r
+  end
 end
 
 function M.startswith(s, with)
@@ -94,7 +127,7 @@ end
 
 function M.log_error(line, cause)
   if cause then
-    print('noteflow: ' .. line .. '. Cause by: ' .. cause)
+    print('noteflow: ' .. line .. '. Caused by: ' .. cause)
   else
     print('noteflow: ' .. line)
   end
@@ -139,6 +172,7 @@ function M.parse_tags_prompt(prompt)
   end
   return tags, prompt
 end
+
 
 
 return M

@@ -4,6 +4,7 @@ local path = require('plenary.path')
 local utils = require('noteflow.utils')
 local notes = require('noteflow.notes')
 local config = require('noteflow.config')
+local log = utils.log
 
 local text_iterator = utils.text_iterator
 
@@ -28,7 +29,9 @@ function mt:refresh(opts)
   if not already_run then
     vim.cmd('echon "Refreshing note cache for the first time..."')
   end
-  scandir.scan_dir_async(config:vault_path(), {
+  local processing = 0
+  local processed = 0
+  scandir.scan_dir(config:vault_path(), {
     search_pattern='.+%.md$',
     on_insert = function(fn)
       -- exclude templates dir
@@ -44,24 +47,19 @@ function mt:refresh(opts)
           return
         end
       end
+      processing = processing + 1
       path:new(fn):read(function(text)
          local meta = notes.parse_note(text_iterator(text), fn)
          meta.mt_time = mt_time or get_mt_time(fn)
          cache[fn] = meta
          if opts.on_insert then opts.on_insert(meta) end
+         processed = processed + 1
       end)
     end,
-    on_exit = function()
-      if opts.on_exit then opts.on_exit() end
-      completed = true
-    end
   })
-
-  if opts.wait_for_completion then
-    vim.wait(5000, function()
-      return completed
-    end,10,true)
-  end
+  vim.wait(5000, function()
+    return processed >= processing
+  end,10,true)
   if not already_run then
     already_run = true
 		vim.cmd('echon "\rRefreshing note cache for the first time... done!"')

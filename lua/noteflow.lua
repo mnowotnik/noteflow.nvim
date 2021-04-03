@@ -20,6 +20,7 @@ local vim_find_rev = utils.vim_find_rev
 local set_to_arr = utils.set_to_arr
 local arr_to_set = utils.arr_to_set
 local parse_tags_prompt = utils.parse_tags_prompt
+local log = utils.log
 
 local buffer = require('noteflow.buffer')
 local find_wikilink_open_start = buffer.find_wikilink_open_start
@@ -311,16 +312,20 @@ function M.follow_wikilink()
   local wikilink = find_wikilink()
   if not wikilink or not wikilink.link then return end
 
+	log.fmt_debug("Found wikilink: %s", wikilink.link)
+
   cache:refresh({wait_for_completion=true})
 
   local link = wikilink.link:lower()
-  if link == "" then return end
+  if vim.trim(link) == "" then return end
   for fn, meta in pairs(cache) do
     if meta.title:lower() == link then
+			log.fmt_debug("Opening note for wikilink: %s", fn)
       utils.open_file(fn)
       return
     end
   end
+	log.fmt_debug("No notes found. Creating a new note for wikilink: %s", wikilink.link)
 
 	M.new_note(link)
 end
