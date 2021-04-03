@@ -312,7 +312,7 @@ function M.follow_wikilink()
   local wikilink = find_wikilink()
   if not wikilink or not wikilink.link then return end
 
-	log.fmt_debug("Found wikilink: '%s'", wikilink.link)
+	log.fmt_debug("Found wikilink: %s", wikilink.link)
 
   cache:refresh({wait_for_completion=true})
 

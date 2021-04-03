@@ -32,6 +32,7 @@ function mt:refresh(opts)
   scandir.scan_dir_async(config:vault_path(), {
     search_pattern='.+%.md$',
     on_insert = function(fn)
+      log.debug('on_insert')
       -- exclude templates dir
       if tmpl_path and fn:sub(1,#tmpl_path) == tmpl_path then
         return
@@ -53,6 +54,7 @@ function mt:refresh(opts)
       end)
     end,
     on_exit = function()
+      log.debug('on_exit')
       if opts.on_exit then opts.on_exit() end
       completed = true
     end
@@ -66,7 +68,6 @@ function mt:refresh(opts)
     end,10,true)
     -- FIXME change to fmt_debug after fix in plenary is merged
     log.debug('Waiting for cache ended. Indexing completed: ' .. tostring(completed))
-    log.fmt_debug('Cache content: %s', cache)
   end
   if not already_run then
     already_run = true
