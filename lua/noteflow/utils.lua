@@ -5,33 +5,38 @@ local log = require('plenary.log').new({
   use_file = false
 })
 
+do
+  local os = require('os')
+  log.level = os.getenv('DEBUG_NOTEFLOW') and 'debug' or 'info'
+end
+
 M.log = log
 
 function M.wikilinks_iterator(line)
-	local parse_wikilink = function(wikilink)
-		local title, desc = string.match(wikilink, '(.+[^%s])%s*|(.+)')
+  local parse_wikilink = function(wikilink)
+    local title, desc = string.match(wikilink, '(.+[^%s])%s*|(.+)')
     if not title then
       wikilink = vim.trim(wikilink)
       if wikilink:sub(1,1) == '|' then
         return nil, wikilink
       end
     end
-		return title or wikilink, desc
-	end
+    return title or wikilink, desc
+  end
 
   local iter = string.gmatch(line, '()(%[%[.+%]%])()')
-	return function()
-		local startpos, match, endpos = iter()
-		if not match then return end
-		local link_content = string.match(match, '%[%[%s*([^%s].+[^%s])%s*%]%]')
-		local r = {startpos=startpos,endpos=endpos-1}
-		if link_content then
-			local link, description = parse_wikilink(link_content)
-			r.link = link
-			r.description = description
-		end
-		return r
-	end
+  return function()
+    local startpos, match, endpos = iter()
+    if not match then return end
+    local link_content = string.match(match, '%[%[%s*([^%s].+[^%s])%s*%]%]')
+    local r = {startpos=startpos,endpos=endpos-1}
+    if link_content then
+      local link, description = parse_wikilink(link_content)
+      r.link = link
+      r.description = description
+    end
+    return r
+  end
 end
 
 function M.startswith(s, with)
