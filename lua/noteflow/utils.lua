@@ -21,6 +21,18 @@ function log.debug(msg)
   print(msg)
 end
 
+function log.fmt_debug(msg, ...)
+  if log.level ~= 'debug' then
+    return
+  end
+	local args = {...}
+	local vars = {}
+	for _,arg in ipairs(args) do
+		table.insert(vars, vim.inspect(arg))
+	end
+	print(msg:format(unpack(vars)))
+end
+
 M.log = log
 
 function M.wikilinks_iterator(line)

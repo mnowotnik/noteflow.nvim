@@ -13,7 +13,7 @@ deps:
 	cd deps && git clone --depth 1 https://github.com/nvim-lua/popup.nvim
 
 ci-test: github-actions-setup.sh
-	bash -c 'source github-actions-setup.sh nightly-x64 && export DEBUG_NOTEFLOW=true && make test'
+	bash -c 'source github-actions-setup.sh nightly-x64 && make test'
 
 github-actions-setup.sh:
 	curl -OL https://raw.githubusercontent.com/norcalli/bot-ci/master/scripts/github-actions-setup.sh
