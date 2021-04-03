@@ -66,6 +66,7 @@ function mt:refresh(opts)
     end,10,true)
     -- FIXME change to fmt_debug after fix in plenary is merged
     log.debug('Waiting for cache ended. Indexing completed: ' .. tostring(completed))
+    log.fmt_debug('Cache content: %s', cache)
   end
   if not already_run then
     already_run = true

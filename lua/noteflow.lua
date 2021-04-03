@@ -320,12 +320,12 @@ function M.follow_wikilink()
   if vim.trim(link) == "" then return end
   for fn, meta in pairs(cache) do
     if meta.title:lower() == link then
-			log.fmt_debug("Opening note for wikilink: '%s'", fn)
+			log.fmt_debug("Opening note for wikilink: %s", fn)
       utils.open_file(fn)
       return
     end
   end
-	log.fmt_debug("No notes found. Creating a new note for wikilink: '%s'", wikilink.link)
+	log.fmt_debug("No notes found. Creating a new note for wikilink: %s", wikilink.link)
 
 	M.new_note(link)
 end
