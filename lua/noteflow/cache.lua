@@ -15,7 +15,6 @@ local get_mt_time = function(fn)
     return stat.mtime.sec
 end
 
-log.level = "debug"
 local mt = {}
 mt.__index = mt
 

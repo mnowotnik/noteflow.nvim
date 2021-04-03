@@ -1,16 +1,10 @@
 
-local M = {}
-
-local log = require('plenary.log').new({
-  use_file = false
-})
-
-do
-  local os = require('os')
-  log.level = os.getenv('DEBUG_NOTEFLOW') and 'debug' or 'info'
-end
-
-M.log = log
+local M = {
+  log = require('plenary.log').new({
+    use_file = false,
+    level = require('os').getenv('DEBUG_NOTEFLOW') and 'debug' or 'info'
+  })
+}
 
 function M.wikilinks_iterator(line)
   local parse_wikilink = function(wikilink)
