@@ -19,6 +19,7 @@ jobs:
         run: |
           curl -OL https://raw.githubusercontent.com/norcalli/bot-ci/master/scripts/github-actions-setup.sh
           source github-actions-setup.sh nightly-x64
+          export DEBUG_PLENARY=true
           make test
 
   appimage-ubuntu:
@@ -45,4 +46,5 @@ jobs:
       - name: Run tests
         run: |
             export PATH="${PWD}/build/:${PATH}"
+            export DEBUG_PLENARY=true
             make test

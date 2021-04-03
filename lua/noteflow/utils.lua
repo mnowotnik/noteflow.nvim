@@ -94,7 +94,7 @@ end
 
 function M.log_error(line, cause)
   if cause then
-    print('noteflow: ' .. line .. '. Cause by: ' .. cause)
+    print('noteflow: ' .. line .. '. Caused by: ' .. cause)
   else
     print('noteflow: ' .. line)
   end

@@ -4,6 +4,7 @@ local path = require('plenary.path')
 local utils = require('noteflow.utils')
 local notes = require('noteflow.notes')
 local config = require('noteflow.config')
+local log = require('plenary.log')
 
 local text_iterator = utils.text_iterator
 
@@ -58,9 +59,12 @@ function mt:refresh(opts)
   })
 
   if opts.wait_for_completion then
+    log.debug('Waiting for cache refresh')
+
     vim.wait(5000, function()
       return completed
     end,10,true)
+    log.fmt_debug('Waiting for cache ended. Indexing completed: %s', completed)
   end
   if not already_run then
     already_run = true
