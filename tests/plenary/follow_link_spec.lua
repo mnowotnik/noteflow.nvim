@@ -163,7 +163,4 @@ describe('Following wikilink', function()
       assert_not_in_telescope_prompt()
     end)
   end)
-  -- wait for plenary
-  -- FIXME remove after plenary allows for sync logging
-  vim.wait(100)
 end)
