@@ -1,10 +1,27 @@
 
 local M = {
-  log = require('plenary.log').new({
-    use_file = false,
-    level = require('os').getenv('DEBUG_NOTEFLOW') and 'debug' or 'info'
-  })
+  -- log = require('plenary.log').new({
+  --   use_file = false,
+  --   level = require('os').getenv('DEBUG_NOTEFLOW') and 'debug' or 'info'
+  -- })
 }
+
+local log = {
+  level = require('os').getenv('DEBUG_NOTEFLOW') and 'debug' or 'info'
+}
+
+function log.info(msg)
+  print(msg)
+end
+
+function log.debug(msg)
+  if log.level ~= 'debug' then
+    return
+  end
+  print(msg)
+end
+
+M.log = log
 
 function M.wikilinks_iterator(line)
   local parse_wikilink = function(wikilink)
