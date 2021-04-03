@@ -24,7 +24,6 @@ local already_run = false
 
 function mt:refresh(opts)
   opts = opts or {}
-  local completed = false
   local tmpl_path = config.templates_dir
   if not already_run then
     vim.cmd('echon "Refreshing note cache for the first time..."')

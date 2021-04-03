@@ -8,7 +8,7 @@ function jump_to_word(word)
 end
 
 function open_file(fn)
-	local p = path:new(require('noteflow.config').vault_path(), fn):absolute()
+	local p = path:new(get_vault_path(), fn):absolute()
 	vim.cmd("e " .. p)
 end
 
@@ -77,6 +77,7 @@ function close_all_buffers()
 end
 
 function read_note_lines(rel_note_path)
+  assert(rel_note_path)
   return path:new(get_vault_path(), rel_note_path):readlines()
 end
 
@@ -91,9 +92,15 @@ function get_note_frontmatter(rel_note_path)
       break
     end
     if idx > 1 then
-      table.insert(r, line)
+      local split = vim.split(line, ': ')
+      assert.is.equal(2, #split)
+      table.insert(r, split)
     end
   end
   assert.is_not_nil(end_nr, "Invalid frontmatter. End not found: " .. rel_note_path)
   return r
+end
+
+function assert_matches_datetime_pattern(val)
+  assert.truthy(string.match(val, DATETIME_PATTERN), val .. " not matching datetime pattern")
 end
