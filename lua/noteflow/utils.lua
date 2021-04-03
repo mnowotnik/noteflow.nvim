@@ -1,6 +1,11 @@
 
-
 local M = {}
+
+local log = require('plenary.log').new({
+  use_file = false
+})
+
+M.log = log
 
 function M.wikilinks_iterator(line)
 	local parse_wikilink = function(wikilink)
@@ -139,6 +144,7 @@ function M.parse_tags_prompt(prompt)
   end
   return tags, prompt
 end
+
 
 
 return M

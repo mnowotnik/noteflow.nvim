@@ -4,7 +4,7 @@ local path = require('plenary.path')
 local utils = require('noteflow.utils')
 local notes = require('noteflow.notes')
 local config = require('noteflow.config')
-local log = require('plenary.log')
+local log = utils.log
 
 local text_iterator = utils.text_iterator
 
@@ -15,6 +15,7 @@ local get_mt_time = function(fn)
     return stat.mtime.sec
 end
 
+log.level = "debug"
 local mt = {}
 mt.__index = mt
 
@@ -64,7 +65,8 @@ function mt:refresh(opts)
     vim.wait(5000, function()
       return completed
     end,10,true)
-    log.fmt_debug('Waiting for cache ended. Indexing completed: %s', completed)
+    -- FIXME change to fmt_debug after fix in plenary is merged
+    log.debug('Waiting for cache ended. Indexing completed: ' .. tostring(completed))
   end
   if not already_run then
     already_run = true
