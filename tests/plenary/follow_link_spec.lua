@@ -29,15 +29,15 @@ describe('Following wikilink', function()
 
   describe('should open a note', function()
 
-    it('if cursor is on the second leftmost [ character', function ()
-      local title = "Same dir fm title"
-      attempt_to_jump("from.md", title, move_cursor, -1)
-      assert.are.same(filename_by_title(title), vim.fn.expand('%:p'))
-    end)
-
     it('if cursor is on the leftmost [ character', function ()
       local title = "Same dir fm title"
       attempt_to_jump("from.md", title, move_cursor, -2)
+      assert.are.same(filename_by_title(title), vim.fn.expand('%:p'))
+    end)
+
+    it('if cursor is on the second leftmost [ character', function ()
+      local title = "Same dir fm title"
+      attempt_to_jump("from.md", title, move_cursor, -1)
       assert.are.same(filename_by_title(title), vim.fn.expand('%:p'))
     end)
 
