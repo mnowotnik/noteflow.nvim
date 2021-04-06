@@ -107,3 +107,17 @@ end
 function assert_matches_datetime_pattern(val)
   assert.truthy(string.match(val, DATETIME_PATTERN), val .. " not matching datetime pattern")
 end
+
+function mock_func()
+  local mt = {
+    __call = function(...)
+			local input = {...}
+			local self = table.remove(input, 1)
+			table.remove(input, 1)
+      self.called = true
+      self.args = input
+      if not f then return end
+    end
+  }
+  return setmetatable({called = false}, mt)
+end

@@ -163,7 +163,41 @@ describe('Following wikilink', function()
       assert_not_in_telescope_prompt()
     end)
   end)
-  -- wait for plenary
-  -- FIXME remove after plenary allows for sync logging
-  vim.wait(100)
+end)
+
+describe("Following wikilink should create note on missing target", function()
+  local noteflow = require('noteflow')
+
+  before_each(function()
+    noteflow.new_note = mock_func()
+  end)
+
+  after_each(function()
+    noteflow.new_note = nil
+    close_all_buffers()
+  end)
+
+  it("", function()
+    attempt_to_jump("create_on_missing.md", "foobar")
+    assert(noteflow.new_note.called)
+    assert.are.same({"foobar"}, noteflow.new_note.args)
+  end)
+
+  it("when a wikilink has a description part", function()
+    attempt_to_jump("create_on_missing.md", "foobar|desc")
+    assert(noteflow.new_note.called)
+    assert.are.same({"foobar"}, noteflow.new_note.args)
+  end)
+
+  it("when a wikilink has a description part and a space in the link", function()
+    attempt_to_jump("create_on_missing.md", "foo bar|desc")
+    assert(noteflow.new_note.called)
+    assert.are.same({"foo bar"}, noteflow.new_note.args)
+  end)
+
+  it("when a wikilink has a description part and a space in the link and the link is capitalized", function()
+    attempt_to_jump("create_on_missing.md", "Foo bar|desc")
+    assert(noteflow.new_note.called)
+    assert.are.same({"Foo bar"}, noteflow.new_note.args)
+  end)
 end)

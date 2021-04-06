@@ -16,7 +16,7 @@ endfunction
 
 augroup NoteflowGroup
 	autocmd! * <buffer>
-	autocmd BufWrite <buffer> lua require('noteflow').update_modified()
+	autocmd BufWrite <buffer> lua require('noteflow'):update_modified()
 	if get(g:, 'noteflow_extended_markdown', 0)
 		autocmd BufEnter *.md call s:extended_markdown()
 	endif

@@ -181,7 +181,7 @@ local on_choose_folder = on_choose_from_table_factory{
 
 local M = {}
 
-function M.find_note_by_title()
+function M:find_note_by_title()
   -- TODO add sorting by modified
   -- TODO support multiple vaults
   find_note {
@@ -259,7 +259,7 @@ local live_grep = function(opts)
   }):find()
 end
 
-function M.grep_notes()
+function M:grep_notes()
   live_grep {
    prompt_title = "Notes: search",
    cwd = config.vault_path,
@@ -269,7 +269,7 @@ function M.grep_notes()
   }
 end
 
-function M.staged_grep()
+function M:staged_grep()
   staged_grep {
     cwd = config.vault_path,
     shorten_path = true,
@@ -278,7 +278,7 @@ function M.staged_grep()
   }
 end
 
-function M.new_note(title)
+function M:new_note(title)
   on_choose_template(function(tmpl)
     on_choose_folder(function(folder)
       local p = notes.create_note_if_not_exists(folder, title, tmpl)
@@ -287,7 +287,7 @@ function M.new_note(title)
   end)
 end
 
-function M.new_empty_note(title)
+function M:new_empty_note(title)
   on_choose_folder(function(folder)
     local templates = get_template_names()
     local tmpl = templates[vim.g.noteflow_default_template]
@@ -299,12 +299,12 @@ function M.new_empty_note(title)
   end)
 end
 
-function M.update_modified()
+function M:update_modified()
   local meta = notes.parse_current_buffer()
   meta:update_modified_curbuf()
 end
 
-function M.follow_wikilink()
+function M:follow_wikilink()
   local wikilink = find_wikilink()
   if not wikilink or not wikilink.link then return end
 
@@ -323,7 +323,7 @@ function M.follow_wikilink()
   end
 	log.fmt_debug("No notes found. Creating a new note for wikilink: %s", wikilink.link)
 
-	M.new_note(link)
+	self:new_note(wikilink.link)
 end
 
 local in_telescope = function()
@@ -376,7 +376,7 @@ function _G.noteflow_omnifunc(findstart, base)
   end
 end
 
-function M.insert_link()
+function M:insert_link()
 	-- already in wikilink?
   if find_wikilink() then
     return
@@ -407,7 +407,7 @@ function M.insert_link()
   find_note(opts)
 end
 
-function M.noteflow_ftdetect()
+function M:noteflow_ftdetect()
   if config.vault_path == "" then
     return
   end
@@ -422,7 +422,7 @@ function M.noteflow_ftdetect()
   end
 end
 
-function M.daily_note()
+function M:daily_note()
 	assert(vim.g.noteflow_daily_folder, 'Daily notes folder not configured!')
 	assert(vim.g.noteflow_daily_template, 'Daily notes template not configured!')
 	local title = current_date()
@@ -434,7 +434,7 @@ function M.daily_note()
 end
 
 -- TODO allow adding new tags
-function M.edit_tags()
+function M:edit_tags()
   local meta = notes.parse_current_buffer()
   local modified = false
   local all_tags = get_all_tags()
@@ -529,11 +529,11 @@ function M.edit_tags()
   picker:set_selection(0)
 end
 
-function M.setup(opts)
+function M:setup(opts)
   config.setup(opts)
 end
 
-function M.rename_note(new_title)
+function M:rename_note(new_title)
   local cnote = notes.parse_current_buffer()
   local old_title = cnote.title
   if not cnote:change_title_current_buffer(new_title) then return end
@@ -552,4 +552,7 @@ function M.rename_note(new_title)
   vim.cmd('buffer ' .. bufnr)
 end
 
-return M
+M.__index = M
+local noteflow = {}
+
+return setmetatable(noteflow, M)
