@@ -2,9 +2,12 @@
 # TODO:
 # - lint
 # - format
+#
+
+vim=DEBUG_NOTEFLOW=true nvim --noplugin -u tests/minimal_init.vim --headless
 
 test: deps
-	DEBUG_NOTEFLOW=true nvim --headless --noplugin -u tests/minimal_init.vim -c "PlenaryBustedDirectory tests/plenary/ {minimal_init = 'tests/minimal_init.vim'}"
+	$(vim) -c "PlenaryBustedDirectory tests/plenary/ {minimal_init = 'tests/minimal_init.vim'}"
 
 deps:
 	mkdir deps
@@ -20,3 +23,6 @@ github-actions-setup.sh:
 
 clean:
 	rm -rf deps
+
+testfile:
+	$(vim) -c "PlenaryBustedFile $(testfile)"
