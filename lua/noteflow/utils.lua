@@ -1,4 +1,6 @@
 
+local F = require('plenary.functional')
+
 local M = {
   -- log = require('plenary.log').new({
   --   use_file = false,
@@ -173,7 +175,11 @@ function M.parse_tags_prompt(prompt)
   return tags, prompt
 end
 
-
+function M.assert_fmt(cond, msg, ...)
+	if cond then return end
+	local inspected = F.map(function(x) return vim.inspect(x) end, {...})
+	assert(cond, msg:format(unpack(inspected)))
+end
 
 return M
 

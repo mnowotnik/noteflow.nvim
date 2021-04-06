@@ -28,13 +28,6 @@ local find_wikilink = buffer.find_wikilink_under_cursor
 
 local luv = vim.loop
 
-local get_templates_path = function()
-  if path:new(config.templates_dir):exists() then
-    return config.templates_dir
-  end
-  return nil
-end
-
 local get_all_tags = function()
   local tags = {}
   cache:refresh({
@@ -51,7 +44,7 @@ end
 local find_note = function(opts)
   local fzy = require('telescope.algos.fzy')
   pickers.new(opts, {
-    finder = custom_finders.indexing_finder({cwd=config:vault_path()}),
+    finder = custom_finders.indexing_finder({cwd=config.vault_path}),
     sorter = sorters.Sorter:new {
       scoring_function = function() return 0 end,
 
@@ -91,25 +84,26 @@ local find_note = function(opts)
 end
 
 local get_vault_folders = function()
-    local fd = luv.fs_scandir(config:vault_path())
-    if fd == nil then return end
+    local vault_path = config.vault_path
+    local fd = luv.fs_scandir(vault_path)
+    if fd == nil then return vault_path end
     local result = {}
-    local tmpl_path = get_templates_path()
+    local tmpl_path = config.templates_path
     while true do
       local name, typ = luv.fs_scandir_next(fd)
       if name == nil then break end
       if typ == 'directory'
         and not vim.startswith(name, ".")
         and tmpl_path -- filter out template dir
-        and tmpl_path ~= path:new(config:vault_path(), name):absolute() then
+        and tmpl_path ~= path:new(vault_path, name):absolute() then
         table.insert(result, name)
       end
     end
     return result
 end
 
-local get_templates = function()
-  local tmpl_path = get_templates_path()
+local get_template_names = function()
+  local tmpl_path = config.templates_path
   if not tmpl_path then
     return {}
   end
@@ -153,7 +147,7 @@ end
 
 local on_choose_template = function(callback, opts)
   opts = opts or {}
-  local templates = get_templates()
+  local templates = get_template_names()
   local picker = on_choose_from_table_factory{
     default_prompt='Choose template',
     source=function()
@@ -181,7 +175,9 @@ local on_choose_template = function(callback, opts)
   picker(callback,opts)
 end
 
-local on_choose_folder = on_choose_from_table_factory{source=get_vault_folders, default_prompt='Choose folder'}
+local on_choose_folder = on_choose_from_table_factory{
+    source=get_vault_folders,
+    default_prompt='Choose folder'}
 
 local M = {}
 
@@ -266,7 +262,7 @@ end
 function M.grep_notes()
   live_grep {
    prompt_title = "Notes: search",
-   cwd = config:vault_path(),
+   cwd = config.vault_path,
    shorten_path = true,
    previewer = false,
    sorter = sorters.highlighter_only()
@@ -275,7 +271,7 @@ end
 
 function M.staged_grep()
   staged_grep {
-    cwd = config:vault_path(),
+    cwd = config.vault_path,
     shorten_path = true,
     previewer = false,
     fzf_separator = "|>",
@@ -293,7 +289,7 @@ end
 
 function M.new_empty_note(title)
   on_choose_folder(function(folder)
-    local templates = get_templates()
+    local templates = get_template_names()
     local tmpl = templates[vim.g.noteflow_default_template]
     if not tmpl then
       tmpl = templates['empty']
@@ -412,14 +408,14 @@ function M.insert_link()
 end
 
 function M.noteflow_ftdetect()
-  if config:vault_path() == "" then
+  if config.vault_path == "" then
     return
   end
   if string.match(vim.bo.filetype, "noteflow") then
     return
   end
 
-  if vim.startswith(vim.fn.expand('%:p:h'), config:vault_path()) then
+  if vim.startswith(vim.fn.expand('%:p:h'), config.vault_path) then
     local old_ft = vim.bo.filetype or ""
     old_ft = vim.trim(old_ft)
     vim.bo.filetype = old_ft ~= "" and old_ft .. ".noteflow" or "noteflow"
@@ -430,7 +426,7 @@ function M.daily_note()
 	assert(vim.g.noteflow_daily_folder, 'Daily notes folder not configured!')
 	assert(vim.g.noteflow_daily_template, 'Daily notes template not configured!')
 	local title = current_date()
-  local daily_tmpl = get_templates()[vim.g.noteflow_daily_template]
+  local daily_tmpl = get_template_names()[vim.g.noteflow_daily_template]
 	assert(daily_tmpl, 'Daily notes template does not exist!')
 	local p = notes.create_note_if_not_exists(vim.g.noteflow_daily_folder, title,
 		daily_tmpl)
@@ -534,7 +530,7 @@ function M.edit_tags()
 end
 
 function M.setup(opts)
-  config:setup(opts)
+  config.setup(opts)
 end
 
 function M.rename_note(new_title)

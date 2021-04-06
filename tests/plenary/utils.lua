@@ -1,4 +1,5 @@
 local path = require('plenary.path')
+local config = require('noteflow.config')
 
 DATETIME_PATTERN = '%d%d%d%d%-%d%d%-%d%dT%d%d:%d%d:%d%d'
 
@@ -30,7 +31,7 @@ function filename_by_title(title)
 	if by_title_cache[title] then
 		return by_title_cache[title]
 	end
-	local dir = require('noteflow.config'):vault_path()
+	local dir = get_vault_path()
 	local path = require('plenary.path')
 	local fns = require('plenary.scandir').scan_dir(dir)
 	for _,fn in ipairs(fns) do
@@ -47,13 +48,15 @@ function filename_by_title(title)
 end
 
 function set_vault_path_to(dir_in_fixture)
-	local path = require('plenary.path')
-	local p = path:new(vim.fn.expand('%:p:h'), 'tests', 'plenary', 'fixtures', dir_in_fixture):absolute()
-	vim.g.noteflow_vault_path = p
+	config.vault_path = abs_fixtures_path(dir_in_fixture)
 end
 
 function get_vault_path()
-  return vim.g.noteflow_vault_path
+  return config.vault_path
+end
+
+function abs_fixtures_path(dir_in_fixture)
+	return path:new(vim.fn.expand('%:p:h'), 'tests', 'plenary', 'fixtures', dir_in_fixture):absolute()
 end
 
 function assert_in_telescope_prompt()

@@ -24,13 +24,13 @@ local already_run = false
 
 function mt:refresh(opts)
   opts = opts or {}
-  local tmpl_path = config.templates_dir
+  local tmpl_path = config.templates_path
   if not already_run then
     vim.cmd('echon "Refreshing note cache for the first time..."')
   end
   local processing = 0
   local processed = 0
-  scandir.scan_dir(config:vault_path(), {
+  scandir.scan_dir(config.vault_path, {
     search_pattern='.+%.md$',
     on_insert = function(fn)
       -- exclude templates dir

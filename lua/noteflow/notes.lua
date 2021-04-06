@@ -223,12 +223,17 @@ function M.parse_note(line_iter, fn)
 	return setmetatable(self, Note)
 end
 
-local make_note_path = function(folder, fn)
-	return path:new(config:vault_path() , folder , (fn .. '.md'))
+local make_note_path = function(folder, title)
+  local slug = title
+  if config.make_note_slug then
+    slug = config.make_note_slug(title)
+  end
+	return path:new(config.vault_path , folder , (slug .. '.md'))
 end
 
+M._make_note_path = make_note_path
+
 function M.create_note_if_not_exists(folder,title,tmpl)
-  -- TODO slugify hook
   local p = make_note_path(folder, title)
   if p:exists() then return p:absolute() end
 
