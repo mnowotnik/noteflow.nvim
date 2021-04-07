@@ -165,6 +165,7 @@ function M.parse_note(line_iter, fn)
       if type(self._fm.tags) == 'string' then
         self._fm.tags = {self._fm.tags}
       end
+      self.title = self._fm.title
     end
   end
   self._fm = self._fm or {}
