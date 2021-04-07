@@ -76,7 +76,7 @@ Installation instructions for requirements are on respective project pages:
 
 Before jumping in to install and configure, you can test drive this plugin
 using preconfigured minimal setup. All you have to do is clone this repo and
-run `make example` ! You need to have requirements installed, though.
+run `make demo` ! You need to have requirements installed, though.
 
 ```bash
 git clone https://github.com/mnowotnik/noteflow.nvim.git
