@@ -145,7 +145,6 @@ nn <leader>nt :NoteflowTags<cr>
 nn <leader>ng :NoteflowGrep<cr>
 nn <leader>ns :NoteflowStagedGrep<cr>
 nn <leader>nl :NoteflowInsertLink<cr>
-" nn <leader>nn :NoteflowNew<cr>
 ```
 
 At `ftplugin/noteflow.vim` add:
