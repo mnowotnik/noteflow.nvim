@@ -7,10 +7,10 @@ Noteflow is a Neovim plugin written in Lua that aims to minimize amount of
 work needed to take notes and maintain a personal knowledge base made of
 markdown notes. It provides multiple commands to ease repetitive and arduous
 tasks. By mapping those commands, you should be able to seamlessly manage
-your Vault (a folder with notes) using only a few keystrokes. Additionally, Noteflow should be highly customizable through exposing API and hooks in Lua.
+your Vault (a folder with notes) using only a few keystrokes. Additionally, Noteflow exposes hooks to easily customize it programatically.
 
 Noteflow is, however, fairly opinionated when it comes to the structure
-of a note. It makes following assumptions:
+of a note. It makes the following assumptions:
 
 - metadata is kept in a frontmatter. Frontmatter is a section of a note
 that is separated by a triple-dashed line "---". Its content is in yaml format. For example:
@@ -29,15 +29,20 @@ body of a note in the following format: #&lt;tag&gt;
 - notes reference each other via `[[wikilinks]]`. A wikilink contains a note title and optional description. That means note titles must be unique
 
 Noteflow also tries to be compatible with other plain note-taking apps like
-obsidian.md and GitJournal.
+obsidian.md, [GitJournal](https://gitjournal.io/) and
+[vscode-markdown-notes](https://github.com/kortina/vscode-markdown-notes).
 
 This plugin does not provide environment to work with markdown files, like syntax,
-higlighting etc. You should choose the one you think is appropriate. I recommend
+highlighting etc. You should choose the one you think is appropriate. I recommend
 [vim-markdown](https://github.com/plasticboy/vim-markdown).
 
 Best used under source control.
 
 ## Features
+
+You can see some of the features in action in this cast:
+
+[![asciicast](https://asciinema.org/a/405771.svg)](https://asciinema.org/a/405771)
 
 - Powered, mainly, by amazing [Telescope](https://github.com/nvim-telescope/telescope.nvim)
 - Fuzzy searching by title and tags
@@ -45,20 +50,41 @@ Best used under source control.
 - Only plain text files - you own the data
 - Create note based on a title and a template
 - Create note by following a wikilink
-- Jump to the target note by following a wikilink, even if it's in another directory in the Vault
+- Jump to the target note by following a wikilink, even if it's in another directory in a Vault
 - Rename a note and all its references in a Vault with a single command
 - Quickly add and remove tags
 - Update `modified` attribute in the frontmatter on save
-- User hooks for finer management
+- Add hooks to personalize your experience
 - Make a daily note once per day
 - Quickly change a word into a reference (wikilink with a description)
-- Limited additional markdown support (wikilink higlighting etc.)
+- Limited additional markdown support (wikilink highlighting etc.)
+- omnifunc
 
 ## Requirements
 
-- neovim 0.5.0+ (nightly)
+- neovim 0.5.0+
 - fzf
 - ripgrep
+
+Installation instructions for requirements are on respective project pages:
+
+- https://github.com/BurntSushi/ripgrep
+- https://github.com/junegunn/fzf
+- https://github.com/neovim/neovim/releases
+
+## Try it out!
+
+Before jumping in to install and configure, you can test drive this plugin
+using preconfigured minimal setup. All you have to do is clone this repo and
+run `make example` ! You need to have requirements installed, though.
+
+```bash
+git clone https://github.com/mnowotnik/noteflow.nvim.git
+make demo
+```
+
+Commands start with Noteflow prefix.
+Mappings are as in [Configuration](#configuration).
 
 ## Installation
 
@@ -83,15 +109,27 @@ By using a plugin manager:
 
 ## Configuration
 
+In your neovim configuration files set:
+
 ```lua
  -- turn on experimental markdown extension
  -- currently compatible with vim-markdown
 vim.g.noteflow_extended_markdown = 1
+
 require('noteflow').setup({
-    vault_path = "~/Notes", -- nuff said
-    templates_path = "Templates", -- relative to vault_path or absolute
+    vault_dir = "~/Notes", -- nuff said
+
+    -- relative to vault_dir or absolute
+    -- "Templates" is default value
+    templates_dir = "Templates",
+
+    -- relative to vault_dir
+    -- "Daily" is default value
+    daily_dir = "Daily",
+
     -- optional hook to make note filename
     make_note_slug = function(title) return title end,
+
     -- optional hook to make daily note filename
     make_daily_slug = function(title) return title end,
 })
@@ -107,12 +145,46 @@ nn <leader>nt :NoteflowTags<cr>
 nn <leader>ng :NoteflowGrep<cr>
 nn <leader>ns :NoteflowStagedGrep<cr>
 nn <leader>nl :NoteflowInsertLink<cr>
-nn <leader>nn :NoteflowNew<cr>
+" nn <leader>nn :NoteflowNew<cr>
 ```
 
-## Planned features list
+At `ftplugin/noteflow.vim` add:
 
-More to come :)
+```viml
+set omnifunc=v:lua.noteflow_omnifunc
+nn <C-]> lua require('noteflow').follow_wikilink
+```
+
+To enable omnicompletion for wikilinks and tags in Telescope prompt and to use
+Ctrl-] to jump to a linked note.
+
+## Vault structure
+
+You can either keep every note in a single directory, in many small ones or a
+few big ones, depending on how many groups you want to split your notes into.
+
+After you've configured Noteflow, you have to create your Vault.
+In the folder pointed to by `vault_dir`, you can create these example directories:
+
+```shell
+├── Daily # for daily notes
+├── Bar # a user category
+├── Foo # a user category
+└── Templates # stores user templates
+```
+
+## Development
+
+Run
+
+`make test`
+
+in the cloned repository to download dependencies and run the full test suite.
+
+To run a single [plenary](https://github.com/nvim-lua/plenary.nvim)
+specification execute for example:
+
+`make testfile=tests/plenary/follow_link_spec.lua testfile`
 
 ## Notice
 
