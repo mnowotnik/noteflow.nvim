@@ -33,7 +33,7 @@ obsidian.md, [GitJournal](https://gitjournal.io/) and
 [vscode-markdown-notes](https://github.com/kortina/vscode-markdown-notes).
 
 This plugin does not provide environment to work with markdown files, like syntax,
-highlighting etc. You should choose the one you think is appropriate. I recommend
+highlighting etc. You should use it alongside a Markdown plugin. I recommend
 [vim-markdown](https://github.com/plasticboy/vim-markdown).
 
 Best used under source control.
