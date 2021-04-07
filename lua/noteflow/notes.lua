@@ -15,37 +15,15 @@ local FRONTMATTER_BOUNDARY = '---'
 local INLINE_TAG_PATTERN = '#([%w%-/]+)'
 local INLINE_TITLE_PATTERN = '^#%s+(.+[^%s])%s*$'
 local INLINE_WIKILINK_PATTERN = '%[%[%s*(.+)%s*%]%]'
-local DEFAULT_TEMPLATE =
-[[---
-created: ${created}
-modified: ${modified}
----
-# ${title}
-
-]]
-
-local DEFAULT_DAILY_TEMPLATE =
-[[---
-tags: [daily]
-created: ${created}
-modified: ${modified}
----
-
-# ${title}
-
-
-
-]]
-
-
 local M = {}
 
 local Note = {}
 
 Note.__index = function(self, key)
   if key ~= 'tags' then
-    return Note[key]
+    return self._fm[key] or Note[key]
   end
+  if self._tags then return self._tags end
   local tags_set = {}
 
   for _,tag in ipairs(self._fm.tags) do
@@ -55,7 +33,8 @@ Note.__index = function(self, key)
     tags_set[tag] = 1
   end
 
-  self.tags = set_to_arr(tags_set)
+  self._tags = set_to_arr(tags_set)
+  return self._tags
 end
 
 function Note:dump()
@@ -73,20 +52,23 @@ function Note:dump()
 end
 
 function Note:get_fm_tags()
-  return self._fm.tags
+  return self._fm.tags or {}
 end
 
 function Note:toggle_tag(tag)
-  local tags = self._fm.tags
+  if not self._fm.tags then
+    self._fm.tags = {}
+  end
+  local tags = self:get_fm_tags()
   for idx,val in ipairs(tags) do
     if val == tag then
       table.remove(tags, idx)
-      self.tags = nil
+      self._tags = nil
       return
     end
   end
   table.insert(tags, tag)
-  self.tags = nil
+  self._tags = nil
 end
 
 function M.parse_current_buffer()
@@ -179,7 +161,6 @@ function M.parse_note(line_iter, fn)
   if #fm_lines > 0 then
     local ok,fm = pcall(yaml.eval,table.concat(fm_lines, '\n'))
     if ok then
-      self = vim.tbl_extend('keep',self,fm)
       self._fm = fm
       if type(self._fm.tags) == 'string' then
         self._fm.tags = {self._fm.tags}
@@ -217,7 +198,7 @@ function M.parse_note(line_iter, fn)
       tags_set[tag] = 1
     end
   end
-  self.tags = set_to_arr(tags_set)
+  self._tags = set_to_arr(tags_set)
   self.path = fn
   self.title = vim.trim(self.title)
 	return setmetatable(self, Note)
@@ -228,7 +209,7 @@ local make_note_path = function(folder, title)
   if config.make_note_slug then
     slug = config.make_note_slug(title)
   end
-	return path:new(config.vault_path , folder , (slug .. '.md'))
+	return path:new(config.vault_dir , folder , (slug .. '.md'))
 end
 
 M._make_note_path = make_note_path

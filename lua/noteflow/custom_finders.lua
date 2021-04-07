@@ -1,4 +1,5 @@
 local make_entry = require('telescope.make_entry')
+local finders = require('telescope.finders')
 local Job = require('plenary.job')
 
 local cache = require('noteflow.cache')
@@ -34,7 +35,7 @@ function IndexingFinder:new(opts)
 
     while true do
       local finder, _, process_result, process_complete = coroutine.yield()
-      -- FIXME ignore telescope prompt (second param) cause it has incorrect values
+      -- FIXME ignored telescope prompt (second param) cause it has incorrect values
 
       local scan = function()
 
@@ -64,9 +65,15 @@ function IndexingFinder:new(opts)
               end
               if not found_tag then return end
             end
-            local tag_display = table.concat(vim.tbl_map(function(tag) return '#' .. tag end, note.tags),' ')
+            if type(note.tags) == "table" then
+              local tag_display = table.concat(vim.tbl_map(function(tag) return '#' .. tag end, note.tags),' ')
+              process_result({
+                display=title..'\t'..tag_display,ordinal=title,value=fn
+              })
+              return
+            end
             process_result({
-              display=title..'\t'..tag_display,ordinal=title,value=fn
+              display=title,ordinal=title,value=fn
             })
           end,
           on_stderr = function(_,error,_)

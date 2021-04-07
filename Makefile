@@ -2,7 +2,8 @@
 # TODO:
 # - lint
 # - format
-#
+
+.PHONY: demo
 
 vim=DEBUG_NOTEFLOW=true nvim --noplugin -u tests/minimal_init.vim --headless
 
@@ -24,5 +25,8 @@ github-actions-setup.sh:
 clean:
 	rm -rf deps
 
-testfile:
+testfile: deps
 	$(vim) -c "PlenaryBustedFile $(testfile)"
+
+demo: deps
+	nvim --noplugin -u demo/init.vim

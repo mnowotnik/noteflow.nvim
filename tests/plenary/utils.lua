@@ -48,11 +48,11 @@ function filename_by_title(title)
 end
 
 function set_vault_path_to(dir_in_fixture)
-	config.vault_path = abs_fixtures_path(dir_in_fixture)
+	config.vault_dir = abs_fixtures_path(dir_in_fixture)
 end
 
 function get_vault_path()
-  return config.vault_path
+  return config.vault_dir
 end
 
 function abs_fixtures_path(dir_in_fixture)

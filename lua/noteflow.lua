@@ -28,6 +28,36 @@ local find_wikilink = buffer.find_wikilink_under_cursor
 
 local luv = vim.loop
 
+local termcodes = {
+   esc = vim.api.nvim_replace_termcodes("<esc>", true, true, true),
+   c_r = vim.api.nvim_replace_termcodes("<C-r>", true, true, true),
+}
+
+
+local DEFAULT_TEMPLATE =
+[[---
+created: ${created}
+modified: ${modified}
+---
+# ${title}
+
+]]
+
+local DEFAULT_DAILY_TEMPLATE =
+[[---
+tags: [daily]
+created: ${created}
+modified: ${modified}
+---
+
+# ${title}
+
+
+
+]]
+
+
+
 local get_all_tags = function()
   local tags = {}
   cache:refresh({
@@ -44,7 +74,7 @@ end
 local find_note = function(opts)
   local fzy = require('telescope.algos.fzy')
   pickers.new(opts, {
-    finder = custom_finders.indexing_finder({cwd=config.vault_path}),
+    finder = custom_finders.indexing_finder({cwd=config.vault_dir}),
     sorter = sorters.Sorter:new {
       scoring_function = function() return 0 end,
 
@@ -79,36 +109,42 @@ local find_note = function(opts)
       end,
     },
     previewer = telescope_conf.file_previewer(opts),
-    attach_mappings = opts.attach_mappings
+    attach_mappings = function(prompt_bufnr, map)
+      map("i", "<C-x>", false)
+      if opts.attach_mappings then
+        return opts.attach_mappings(prompt_bufnr, map)
+      end
+      return true
+    end
   }):find()
 end
 
 local get_vault_folders = function()
-    local vault_path = config.vault_path
-    local fd = luv.fs_scandir(vault_path)
-    if fd == nil then return vault_path end
+    local vault_dir = config.vault_dir
+    local fd = luv.fs_scandir(vault_dir)
+    if fd == nil then return vault_dir end
     local result = {}
-    local tmpl_path = config.templates_path
+    local tmpl_dir = config.templates_dir
     while true do
       local name, typ = luv.fs_scandir_next(fd)
       if name == nil then break end
       if typ == 'directory'
         and not vim.startswith(name, ".")
-        and tmpl_path -- filter out template dir
-        and tmpl_path ~= path:new(vault_path, name):absolute() then
+        and tmpl_dir ~= path:new(vault_dir, name):absolute() then
         table.insert(result, name)
       end
     end
     return result
 end
 
-local get_template_names = function()
-  local tmpl_path = config.templates_path
-  if not tmpl_path then
-    return {}
+-- TODO move to another module
+local get_templates = function()
+  local tmpl_dir = config.templates_dir
+  if not tmpl_dir then
+    return {default = DEFAULT_TEMPLATE}
   end
   local templates = {}
-  scandir.scan_dir(tmpl_path, {
+  scandir.scan_dir(tmpl_dir, {
     search_pattern='.+%.md',
     on_insert = function(fn)
       local tmpl_content = path:new(fn):read()
@@ -116,6 +152,9 @@ local get_template_names = function()
     end,
   })
   templates['empty'] = ''
+  if not config.daily_template and not templates[config.daily_template] then
+    templates['default daily'] = DEFAULT_DAILY_TEMPLATE
+  end
   return templates
 end
 
@@ -125,8 +164,9 @@ local on_choose_from_table_factory = function(args)
   return function(callback, opts)
     opts = opts or {}
     local results = source()
-    if #results < 2 then
-      callback(results[0])
+    if vim.tbl_count(results) < 2 then
+      callback(results[1])
+      return
     end
     pickers.new(opts, {
       prompt_title = default_prompt,
@@ -147,12 +187,16 @@ end
 
 local on_choose_template = function(callback, opts)
   opts = opts or {}
-  local templates = get_template_names()
+  local templates = get_templates()
+  if vim.tbl_count(templates) == 1 then
+    callback(templates["default"])
+    return
+  end
   local picker = on_choose_from_table_factory{
     default_prompt='Choose template',
     source=function()
       local tmpl_names = vim.tbl_keys(templates)
-      local default_template = vim.g.noteflow_default_template
+      local default_template = config.default_template
       if default_template then
         table.sort(tmpl_names, function(a,b)
           if a==default_template then return true end
@@ -262,7 +306,7 @@ end
 function M:grep_notes()
   live_grep {
    prompt_title = "Notes: search",
-   cwd = config.vault_path,
+   cwd = config.vault_dir,
    shorten_path = true,
    previewer = false,
    sorter = sorters.highlighter_only()
@@ -271,7 +315,7 @@ end
 
 function M:staged_grep()
   staged_grep {
-    cwd = config.vault_path,
+    cwd = config.vault_dir,
     shorten_path = true,
     previewer = false,
     fzf_separator = "|>",
@@ -289,7 +333,7 @@ end
 
 function M:new_empty_note(title)
   on_choose_folder(function(folder)
-    local templates = get_template_names()
+    local templates = get_templates()
     local tmpl = templates[vim.g.noteflow_default_template]
     if not tmpl then
       tmpl = templates['empty']
@@ -382,22 +426,25 @@ function M:insert_link()
     return
   end
 	-- any non-empty word under cursor?
-  if not string.find(vim.fn.expand('<cword>'), '[^%s]') then
-    return
-  end
+  local replace = string.find(vim.fn.expand('<cword>'), '[^%s]')
 
   local opts = {
     prompt_title = "Notes: search by title",
     attach_mappings = function(prompt_bufnr)
       actions.select_default:replace(function()
         local selection = action_state.get_selected_entry()
+        if not selection then return end
         actions.close(prompt_bufnr)
         local title = cache[selection.value].title
         -- FIXME telescope incorrectly restores pos
         local oldpos = vim.fn.getpos('.')
         vim.defer_fn(function()
           vim.fn.setpos('.', oldpos)
-          utils.vim_exec{'normal ciw[[' .. title .. '|' .. '\\<C-r>\\\"' .. ']]\\<Esc>', restore_register=true}
+          if replace then
+            utils.vim_exec{'normal ciw[[' .. title .. '|' .. termcodes.c_r .. '\"' .. ']]' .. termcodes.esc, restore_register=true}
+          else
+            utils.vim_exec{'normal i[[' .. title .. ']]' .. termcodes.esc}
+          end
         end, 10)
       end)
       return true
@@ -408,14 +455,14 @@ function M:insert_link()
 end
 
 function M:noteflow_ftdetect()
-  if config.vault_path == "" then
+  if config.vault_dir == "" then
     return
   end
   if string.match(vim.bo.filetype, "noteflow") then
     return
   end
 
-  if vim.startswith(vim.fn.expand('%:p:h'), config.vault_path) then
+  if vim.startswith(vim.fn.expand('%:p:h'), config.vault_dir) then
     local old_ft = vim.bo.filetype or ""
     old_ft = vim.trim(old_ft)
     vim.bo.filetype = old_ft ~= "" and old_ft .. ".noteflow" or "noteflow"
@@ -423,17 +470,22 @@ function M:noteflow_ftdetect()
 end
 
 function M:daily_note()
-	assert(vim.g.noteflow_daily_folder, 'Daily notes folder not configured!')
-	assert(vim.g.noteflow_daily_template, 'Daily notes template not configured!')
-	local title = current_date()
-  local daily_tmpl = get_template_names()[vim.g.noteflow_daily_template]
-	assert(daily_tmpl, 'Daily notes template does not exist!')
-	local p = notes.create_note_if_not_exists(vim.g.noteflow_daily_folder, title,
+  -- TODO move to notes.lua
+  local daily_dir = config.daily_dir
+  local templates_dir = config.templates_dir
+  local daily_tmpl
+  if templates_dir and cache.daily_template then
+    daily_tmpl = get_templates()[cache.daily_template]
+    assert(daily_tmpl, 'Daily notes template does not exist!')
+  else
+    daily_tmpl = DEFAULT_DAILY_TEMPLATE
+  end
+  local title = utils.current_date()
+	local p = notes.create_note_if_not_exists(daily_dir, title,
 		daily_tmpl)
 	utils.open_file(p, {move_to_end=true})
 end
 
--- TODO allow adding new tags
 function M:edit_tags()
   local meta = notes.parse_current_buffer()
   local modified = false
@@ -442,7 +494,7 @@ function M:edit_tags()
   assert(meta, "Can't parse frontmatter")
 
   local sort_tags = function(tags)
-    local meta_tags = arr_to_set(meta.get_fm_tags())
+    local meta_tags = arr_to_set(meta:get_fm_tags())
     table.sort(tags, function(a,b)
       local a_in_meta = meta_tags[a]
       local b_in_meta = meta_tags[b]
@@ -469,7 +521,7 @@ function M:edit_tags()
 
   local entry_maker = function(line)
     local display = line
-    if vim.tbl_contains(meta.get_fm_tags(), display) then
+    if vim.tbl_contains(meta:get_fm_tags(), display) then
       display = string.format('%-'.. max_tag_len .. 's%s', line, '✔️')
     end
     return {
@@ -480,12 +532,15 @@ function M:edit_tags()
   end
 
   local make_finder = function()
+    if vim.tbl_count(all_tags) == 0 then
+      all_tags = {'daily', 'some-example-tag'}
+    end
     return finders.new_table{results=all_tags,entry_maker=entry_maker}
   end
 
   local picker
   picker = pickers.new({
-    prompt_title = "Edit tags. <space> to toggle",
+    prompt_title = "Edit tags. <space> to toggle, <C-T> to create new",
     selection_strategy = 'row',
     finder = make_finder(),
     sorter = telescope_conf.generic_sorter(),

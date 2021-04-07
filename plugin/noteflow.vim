@@ -10,7 +10,7 @@ command! -nargs=0 NoteflowFind lua require'noteflow':find_note_by_title()
 command! -nargs=0 NoteflowGrep lua require'noteflow':grep_notes()
 command! -nargs=0 NoteflowStagedGrep lua require'noteflow':staged_grep()
 command! -nargs=0 NoteflowFollowWikilink lua require'noteflow':follow_wikilink()
-command! -nargs=0 NoteflowInsertDescLink lua require'noteflow':insert_link()
+command! -nargs=0 NoteflowInsertLink lua require'noteflow':insert_link()
 command! -nargs=0 NoteflowEditTags lua require'noteflow':edit_tags()
 command! -nargs=1 NoteflowRename call luaeval("require'noteflow':rename_note(_A)", expand('<args>'))
 

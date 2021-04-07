@@ -23,7 +23,7 @@ end
 function M.find_wikilink_open_start(line, curpos)
   -- TODO try to use vim api
   local line_to_cur = line:sub(1,curpos-1)
-  local o_start,o_end,match = vim_find_rev(line_to_cur, BOUNDARY_VIM_PAT, 2)
+  local o_start,o_end,match = utils.vim_find_rev(line_to_cur, BOUNDARY_VIM_PAT, 2)
   if not match or match == ']]' then return nil end
   local startpos = string.find(line,'%]%]', curpos)
   if startpos and startpos < curpos then return nil end

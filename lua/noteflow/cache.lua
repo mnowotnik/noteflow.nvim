@@ -24,17 +24,17 @@ local already_run = false
 
 function mt:refresh(opts)
   opts = opts or {}
-  local tmpl_path = config.templates_path
+  local tmpl_dir = config.templates_dir
   if not already_run then
-    vim.cmd('echon "Refreshing note cache for the first time..."')
+    vim.cmd('echo "Refreshing note cache for the first time..."')
   end
   local processing = 0
   local processed = 0
-  scandir.scan_dir(config.vault_path, {
+  scandir.scan_dir(config.vault_dir, {
     search_pattern='.+%.md$',
     on_insert = function(fn)
       -- exclude templates dir
-      if tmpl_path and fn:sub(1,#tmpl_path) == tmpl_path then
+      if tmpl_dir and fn:sub(1,#tmpl_dir) == tmpl_dir then
         return
       end
       local mt_time = nil
@@ -60,8 +60,9 @@ function mt:refresh(opts)
     return processed >= processing
   end,10,true)
   if not already_run then
+    -- clear command line
+    vim.fn.execute[[normal \\<C-l>:\\<C-u>]]
     already_run = true
-		vim.cmd('echon "\rRefreshing note cache for the first time... done!"')
   end
 end
 
