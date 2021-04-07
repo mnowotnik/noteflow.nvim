@@ -4,7 +4,7 @@
 > Commands probably won't change, but backing up or putting your notes under source control before using is highly recommended.
 
 Noteflow is a Neovim plugin written in Lua that aims to minimize amount of
-work needed to take notes and maintain a personal knowledge base made of
+work needed to take notes and maintain a personal knowledge base of
 markdown notes. It provides multiple commands to ease repetitive and arduous
 tasks. By mapping those commands, you should be able to seamlessly manage
 your Vault (a folder with notes) using only a few keystrokes. Additionally, Noteflow exposes hooks to easily customize it programatically.
