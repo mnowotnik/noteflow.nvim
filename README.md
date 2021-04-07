@@ -147,7 +147,7 @@ nn <leader>ns :NoteflowStagedGrep<cr>
 nn <leader>nl :NoteflowInsertLink<cr>
 ```
 
-At `ftplugin/noteflow.vim` add:
+In `ftplugin/noteflow.vim` file add:
 
 ```viml
 set omnifunc=v:lua.noteflow_omnifunc
@@ -174,14 +174,11 @@ In the folder pointed to by `vault_dir`, you can create these example directorie
 
 ## Development
 
-Run
+Download dependencies and run the full test suite.
 
 `make test`
 
-in the cloned repository to download dependencies and run the full test suite.
-
-To run a single [plenary](https://github.com/nvim-lua/plenary.nvim)
-specification execute for example:
+Run a single [plenary](https://github.com/nvim-lua/plenary.nvim) specification:
 
 `make testfile=tests/plenary/follow_link_spec.lua testfile`
 
