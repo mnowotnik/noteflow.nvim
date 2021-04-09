@@ -13,7 +13,7 @@ Noteflow is, however, fairly opinionated when it comes to the structure
 of a note. It makes the following assumptions:
 
 - metadata is kept in a frontmatter. Frontmatter is a section of a note
-that is separated by a triple-dashed line "---". Its content is in yaml format. For example:
+that is separated by a triple-dash line "---". Its content is in yaml format. For example:
 
 ```yaml
 ---
@@ -29,7 +29,7 @@ body of a note in the following format: #&lt;tag&gt;
 - notes reference each other via `[[wikilinks]]`. A wikilink contains a note title and optional description. That means note titles must be unique
 
 Noteflow also tries to be compatible with other plain note-taking apps like
-obsidian.md, [GitJournal](https://gitjournal.io/) and
+[obsidian.md[(https://obsidian.md), [GitJournal](https://gitjournal.io/) and
 [vscode-markdown-notes](https://github.com/kortina/vscode-markdown-notes).
 
 This plugin does not provide environment to work with markdown files, like syntax,
@@ -44,7 +44,7 @@ You can see some of the features in action in this cast:
 
 [![asciicast](https://asciinema.org/a/405771.svg)](https://asciinema.org/a/405771)
 
-- Powered, mainly, by amazing [Telescope](https://github.com/nvim-telescope/telescope.nvim)
+- Powered, mainly, by the amazing [Telescope](https://github.com/nvim-telescope/telescope.nvim)
 - Fuzzy searching by title and tags
 - Searching by content (live grep)
 - Only plain text files - you own the data
@@ -58,19 +58,13 @@ You can see some of the features in action in this cast:
 - Make a daily note once per day
 - Quickly change a word into a reference (wikilink with a description)
 - Limited additional markdown support (wikilink highlighting etc.)
-- omnifunc
+- Autocompletion based on omnifunc
 
 ## Requirements
 
-- neovim 0.5.0+
-- fzf
-- ripgrep
-
-Installation instructions for requirements are on respective project pages:
-
-- https://github.com/BurntSushi/ripgrep
-- https://github.com/junegunn/fzf
-- https://github.com/neovim/neovim/releases
+- [neovim](https://github.com/neovim/neovim/releases) 0.5.0+
+- [fzf](https://github.com/junegunn/fzf)
+- [ripgrep](https://github.com/BurntSushi/ripgrep)
 
 ## Try it out!
 
@@ -109,7 +103,7 @@ By using a plugin manager:
 
 ## Configuration
 
-In your neovim configuration files set:
+In your neovim lua configuration files add:
 
 ```lua
  -- turn on experimental markdown extension
