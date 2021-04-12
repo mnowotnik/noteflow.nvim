@@ -29,7 +29,7 @@ body of a note in the following format: #&lt;tag&gt;
 - notes reference each other via `[[wikilinks]]`. A wikilink contains a note title and optional description. That means note titles must be unique
 
 Noteflow also tries to be compatible with other plain note-taking apps like
-[obsidian.md[(https://obsidian.md), [GitJournal](https://gitjournal.io/) and
+[obsidian.md](https://obsidian.md), [GitJournal](https://gitjournal.io/) and
 [vscode-markdown-notes](https://github.com/kortina/vscode-markdown-notes).
 
 This plugin does not provide environment to work with markdown files, like syntax,
