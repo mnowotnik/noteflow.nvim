@@ -29,7 +29,7 @@ function IndexingFinder:new(opts)
   }, self)
 
   obj._find = coroutine.wrap(function(_, _, _, _)
-    cache:refresh({wait_for_completion=true})
+    cache:refresh()
 
     local scan_timer = nil
 
