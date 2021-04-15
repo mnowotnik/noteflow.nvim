@@ -166,6 +166,13 @@ In the folder pointed to by `vault_dir`, you can create these example directorie
 └── Templates # stores user templates
 ```
 
+## Ignoring files
+
+You may have files in your Vault that you don't consider notes and you would
+like to prevent Noteflow from indexing them. Special file `.noteflowignore` exists
+for this purpose. Create it in the root of your Vault and define there
+ignore rules, one per line, like you would in `.gitignore`. With the compliments of [ripgrep](https://github.com/BurntSushi/ripgrep).
+
 ## Development
 
 Download dependencies and run the full test suite.

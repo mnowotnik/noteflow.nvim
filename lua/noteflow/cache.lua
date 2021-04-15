@@ -7,6 +7,7 @@ local config = require('noteflow.config')
 local log = utils.log
 
 local text_iterator = utils.text_iterator
+local from_paths = utils.from_paths
 
 local luv = vim.loop
 
@@ -22,6 +23,11 @@ local cache = {}
 
 local already_run = false
 
+function mt:by_title(title)
+  for _,note in pairs(self) do
+    if note.title == title then return note end
+  end
+end
 
 function mt:refresh(opts)
   opts = opts or {}
@@ -31,10 +37,19 @@ function mt:refresh(opts)
   end
   local processing = 0
   local processed = 0
+  local args = {'--files', '-tmd', '.'}
+  local ignore_fp = from_paths(config.vault_dir, '.noteflowignore')
+  if ignore_fp:exists() then
+    table.insert(args, '--ignore-file')
+    table.insert(args, ignore_fp:absolute())
+  end
+  local vault_dir = config.vault_dir
   local job = Job:new{
-    command = 'find',
-    args = {config.vault_dir, '-type', 'f', '-name', '*.md'},
+    command = 'rg',
+    args = args,
+    cwd = vault_dir,
     on_stdout = function(_,fn,_)
+      fn = from_paths(vault_dir, fn):absolute()
       if not fn or fn == "" then return end
       if tmpl_dir and fn:sub(1,#tmpl_dir) == tmpl_dir then
         return

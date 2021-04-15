@@ -1,5 +1,6 @@
 
 local F = require('plenary.functional')
+local path = require('plenary.path')
 
 local M = {
   -- log = require('plenary.log').new({
@@ -179,6 +180,22 @@ function M.assert_fmt(cond, msg, ...)
 	if cond then return end
 	local inspected = F.map(function(x) return vim.inspect(x) end, {...})
 	assert(cond, msg:format(unpack(inspected)))
+end
+
+-- FIXME remove after plenary properly resolves paths
+function M.from_paths(...)
+  local args = {...}
+  local expand = args.expand
+  if expand then
+    args = vim.tbl_flatten(args)
+  end
+  local dirty_path = path:new(args)
+  local clean = dirty_path:normalize()
+  clean = clean:gsub('/./', '/')
+  if expand then
+    clean = path:new(clean):expand()
+  end
+  return path:new(clean)
 end
 
 return M
