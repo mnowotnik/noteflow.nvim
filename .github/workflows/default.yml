@@ -15,6 +15,8 @@ jobs:
           path: _neovim
           key: ${{ runner.os }}-x64-${{ hashFiles('todays-date') }}
 
+      - name: Install deps
+        run: sudo apt install fzf ripgrep
       - name: Run tests
         run: |
           curl -OL https://raw.githubusercontent.com/norcalli/bot-ci/master/scripts/github-actions-setup.sh
@@ -33,6 +35,8 @@ jobs:
           path: build
           key: ${{ runner.os }}-appimage-${{ hashFiles('todays-date') }}
 
+      - name: Install deps
+        run: sudo apt install fzf ripgrep
       - name: Prepare
         run: |
           test -d build || {
