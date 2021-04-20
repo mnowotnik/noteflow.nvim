@@ -1,5 +1,3 @@
--- https://www.2n.pl/blog/how-to-write-neovim-plugins-in-lua
-
 local action_state = require('telescope.actions.state')
 local actions = require('telescope.actions')
 local path = require('plenary.path')
@@ -79,7 +77,7 @@ local find_note = function(opts)
       scoring_function = function() return 0 end,
 
       highlighter = function(_, _, display)
-        -- FIXME ignore telescope prompt (second param) cause it has incorrect values
+        -- ignored telescope prompt (second param) cause it has incorrect values
         local raw_prompt = vim.fn.getline('.'):sub(2)
         if display == "" then
           return {}
@@ -593,14 +591,12 @@ function M:rename_note(new_title)
   local old_title = cnote.title
   if not cnote:change_title_current_buffer(new_title) then return end
 
-	cache:refresh({wait_for_completion=true})
+	cache:refresh()
   local bufnr = vim.fn.bufnr()
-  -- vim.api.nvim_command[[argdelete *]]
-  -- print(vim.api.nvim_command[[args]])
   for _,note in pairs(cache) do
     if note:has_wikilinks_to(old_title) then
-      -- vim.api.nvim_command('argadd ' .. vim.fn.fnameescape(note.path))
       vim.api.nvim_command('e ' .. vim.fn.fnameescape(note.path))
+      -- TODO better to leave buffers opened and modified
       vim.api.nvim_command([[silent %s/\v\[\[\s*]] .. old_title .. [[\s*(\|[^|]+)?\]\]/\[\[]] .. new_title .. [[\2\]\]/g | silent update | bd]])
     end
   end
