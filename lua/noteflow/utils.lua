@@ -213,8 +213,8 @@ function M.set_line(linenr, line)
 	vim.api.nvim_buf_set_lines(0,linenr-1,linenr-1,true,{line})
 end
 
-function M.buf_path()
-  return vim.uri_to_fname(vim.uri_from_bufnr(0))
+function M.buf_path(bufnr)
+  return vim.uri_to_fname(vim.uri_from_bufnr(bufnr or 0))
 end
 
 return M

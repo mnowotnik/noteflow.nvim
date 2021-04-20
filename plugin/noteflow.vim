@@ -13,6 +13,7 @@ command! -nargs=0 NoteflowFollowWikilink lua require'noteflow':follow_wikilink()
 command! -nargs=0 NoteflowInsertLink lua require'noteflow':insert_link()
 command! -nargs=0 NoteflowEditTags lua require'noteflow':edit_tags()
 command! -nargs=1 NoteflowRename call luaeval("require'noteflow':rename_note(_A)", expand('<args>'))
+command! -nargs=0 NoteflowPreview lua require'noteflow':preview()
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
