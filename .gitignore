@@ -1,4 +1,5 @@
 
+/.vscode
 /deps
 /github-actions-setup.sh
 /_neovim
@@ -44,3 +45,4 @@ luac.out
 *.x86_64
 *.hex
 
+node_modules
