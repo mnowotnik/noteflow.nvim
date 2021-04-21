@@ -341,8 +341,10 @@ function M:new_empty_note(title)
   end)
 end
 
-function M:update_modified()
+function M:_update_modified()
+  if not vim.bo.modified then return end
   local meta = notes.parse_current_buffer()
+  if vim.fn.undotree()['seq_cur'] == 0 then return end
   meta:update_modified_curbuf()
 end
 
@@ -369,7 +371,7 @@ function M:follow_wikilink()
 end
 
 local in_telescope = function()
-  return action_state.get_current_picker(vim.fn.bufnr()) ~= nil
+  return action_state.get_current_picker(vim.api.nvim_get_current_buf()) ~= nil
 end
 
 function _G.noteflow_omnifunc(findstart, base)
@@ -411,7 +413,7 @@ function _G.noteflow_omnifunc(findstart, base)
     -- to 0-indexed and then move 1 to the right
     if startpos then return startpos - 1 + 1 else return -3 end
   elseif findstart == 0 then
-    if vim.bo.ft == 'TelescopePrompt' then
+    if in_telescope() then
       return get_all_tags()
     end
     return {}
@@ -452,19 +454,12 @@ function M:insert_link()
   find_note(opts)
 end
 
-function M:noteflow_ftdetect()
-  if config.vault_dir == "" then
-    return
-  end
-  if string.match(vim.bo.filetype, "noteflow") then
-    return
-  end
-
-  if vim.startswith(vim.fn.expand('%:p:h'), config.vault_dir) then
-    local old_ft = vim.bo.filetype or ""
-    old_ft = vim.trim(old_ft)
-    vim.bo.filetype = old_ft ~= "" and old_ft .. ".noteflow" or "noteflow"
-  end
+function M:_noteflow_ftdetect()
+  local in_vault = true
+  in_vault = in_vault and config.vault_dir ~= ""
+  in_vault = in_vault and vim.startswith(utils.buf_path(), config.vault_dir)
+  in_vault = in_vault and string.match(vim.bo.filetype, "markdown") ~= nil
+  return in_vault
 end
 
 function M:daily_note()
@@ -540,6 +535,7 @@ function M:edit_tags()
   picker = pickers.new({
     prompt_title = "Edit tags. <space> to toggle, <C-T> to create new",
     selection_strategy = 'row',
+    sorting_strategy = 'ascending',
     finder = make_finder(),
     sorter = telescope_conf.generic_sorter(),
     attach_mappings = function(prompt_bufnr, map)
@@ -579,11 +575,53 @@ function M:edit_tags()
     end
   })
   picker:find()
-  picker:set_selection(0)
+end
+
+function M:_syntax_setup()
+  -- TODO switch to treesitter api?
+  if not self:_noteflow_ftdetect() then return end
+  local commands = {}
+  local function extended_markdown()
+    local has_vim_markdown = vim.fn.exists('HeaderDecrease')
+    if has_vim_markdown then
+      utils.insert(
+        commands,
+        'syn clear mkdListItemLine',
+        'syn clear mkdNonListItemBlock'
+      )
+    end
+    utils.insert(commands,
+      [[syn region mkdTodoStrike matchgroup=htmlStrike start="\[x\]"ms=e+2 end="$"]],
+      'hi def link mkdTodoStrike htmlStrike'
+    )
+  end
+  if config.extended_markdown then extended_markdown() end
+  utils.insert(commands,
+    [[syn region NoteflowWikilink start="\[\[" end="\]\]"]],
+   	'hi link NoteflowWikilink Underlined')
+  -- apply after markdown syntax gets applied
+  -- doesn't work when executed right away
+  vim.schedule(function()
+    utils.exec(table.concat(commands, '\n'))
+  end)
+end
+
+function M:_buffer_setup()
+  if not self:_noteflow_ftdetect() then return end
+  utils.exec[=[
+  augroup NoteflowAugroup
+    autocmd! * <buffer>
+	  autocmd BufWrite <buffer> lua require('noteflow'):_update_modified()
+  augroup END
+  ]=]
+  pcall(config.on_open, vim.api.nvim_get_current_buf())
 end
 
 function M:setup(opts)
   config.setup(opts)
+  -- TODO run autocmd on vault_dir change
+  local buffer_setup_au = string.format([[autocmd BufEnter %s lua require('noteflow'):_buffer_setup()]], config.vault_dir .. '/*.md')
+  vim.api.nvim_command(buffer_setup_au)
 end
 
 function M:rename_note(new_title)

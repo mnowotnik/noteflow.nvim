@@ -4,7 +4,7 @@ set_vault_path_to('update_modified')
 
 local trigger_write_and_get_fm = function(fn)
   open_file(fn)
-  assert.truthy(string.match(vim.bo.filetype, 'noteflow'))
+  vim.fn.append('$','foobar')
   vim.cmd[[write!]]
   return get_note_frontmatter(fn)
 end

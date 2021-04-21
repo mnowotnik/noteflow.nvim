@@ -7,7 +7,8 @@ Noteflow is a Neovim plugin written in Lua that aims to minimize amount of
 work needed to take notes and maintain a personal knowledge base of
 markdown notes. It provides multiple commands to ease repetitive and arduous
 tasks. By mapping those commands, you should be able to seamlessly manage
-your Vault (a folder with notes) using only a few keystrokes. Additionally, Noteflow exposes hooks to easily customize it programatically.
+your Vault (a folder with notes) using only a few keystrokes. Additionally,
+Noteflow exposes hooks to easily customize it programmatically.
 
 Noteflow is, however, fairly opinionated when it comes to the structure
 of a note. It makes the following assumptions:
@@ -126,6 +127,16 @@ require('noteflow').setup({
 
     -- optional hook to make daily note filename
     make_daily_slug = function(title) return title end,
+	extended_markdown = true,
+
+    -- on buffer open hook
+	on_open = function(bufnr)
+        -- buffer local bindings and options
+		vim.api.nvim_exec([=[
+		setl omnifunc=v:lua.noteflow_omnifunc
+		nn <buffer> <silent> <C-]> :lua require('noteflow').follow_wikilink()<cr>
+		]=], false)
+	end
 })
 ```
 
@@ -141,12 +152,6 @@ nn <leader>ns :NoteflowStagedGrep<cr>
 nn <leader>nl :NoteflowInsertLink<cr>
 ```
 
-In `ftplugin/noteflow.vim` file add:
-
-```viml
-set omnifunc=v:lua.noteflow_omnifunc
-nn <C-]> lua require('noteflow').follow_wikilink
-```
 
 To enable omnicompletion for wikilinks and tags in Telescope prompt and to use
 Ctrl-] to jump to a linked note.

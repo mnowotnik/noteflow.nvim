@@ -48,7 +48,9 @@ function filename_by_title(title)
 end
 
 function set_vault_path_to(dir_in_fixture)
-	config.vault_dir = abs_fixtures_path(dir_in_fixture)
+	require('noteflow'):setup({
+		vault_dir = abs_fixtures_path(dir_in_fixture)
+	})
 end
 
 function get_vault_path()

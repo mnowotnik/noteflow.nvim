@@ -1,24 +1,30 @@
 " minimal setup
-set rtp+=.
-set rtp+=deps/plenary.nvim
-set rtp+=deps/telescope.nvim
-set rtp+=deps/popup.nvim
+set rtp+=$PWD
+set rtp+=$PWD/deps/plenary.nvim
+set rtp+=$PWD/deps/telescope.nvim
+set rtp+=$PWD/deps/popup.nvim
 runtime plugin/plenary.vim
 runtime plugin/telescope.vim
 runtime plugin/noteflow.vim
-runtime ftdetect/noteflow.vim
-colorscheme default
+colorscheme desert
 set hidden
 set completeopt=menuone,noinsert,noselect
 set shortmess+=c
 set noswapfile
+set termguicolors
 let g:mapleader=','
 
 lua << EOF
-vim.g.noteflow_extended_markdown = 1
 
 require('noteflow'):setup({
-    vault_dir = require('os').getenv('PWD') .. "/demo",
+  vault_dir = require('os').getenv('PWD') .. '/demo',
+  extended_markdown = true,
+  on_open = function(bufnr)
+    vim.api.nvim_exec([=[
+      setl omnifunc=v:lua.noteflow_omnifunc
+      nn <buffer> <silent> <C-]> :lua require('noteflow').follow_wikilink()<cr>
+    ]=], false)
+  end
 })
 
 -- example Telescope configuration
@@ -60,7 +66,3 @@ nn <leader>ng :NoteflowGrep<cr>
 nn <leader>ns :NoteflowStagedGrep<cr>
 nn <leader>nl :NoteflowInsertLink<cr>
 " nn <leader>nn :NoteflowNew<cr>
-
-" should be in ftplugin/noteflow.vim
-set omnifunc=v:lua.noteflow_omnifunc
-nn <C-]> lua require('noteflow').follow_wikilink

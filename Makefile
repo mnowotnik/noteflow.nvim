@@ -29,4 +29,4 @@ testfile: deps
 	$(vim) -c "PlenaryBustedFile $(testfile)"
 
 demo: deps
-	nvim --noplugin -u demo/init.vim
+	XDG_CONFIG_HOME=${PWD}/demo XDG_DATA_HOME=${PWD}/deps nvim --noplugin -u demo/init.vim -c "set rtp+=${PWD}"

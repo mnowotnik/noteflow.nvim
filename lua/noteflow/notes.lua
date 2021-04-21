@@ -72,12 +72,12 @@ function Note:toggle_tag(tag)
 end
 
 function M.parse_current_buffer()
-  return M.parse_note(buffer.current_buffer_iterator(), vim.fn.expand('%:p'))
+  return M.parse_note(buffer.current_buffer_iterator(), utils.buf_path())
 end
 
 function Note:save_in_current_buffer()
   assert(vim.fn.expand('%:p') == self.path, 'Current buffer has different path than note!')
-  buffer.save_meta_in_current_buffer(self:dump(), FRONTMATTER_BOUNDARY, self._fm_start, self._fm_end)
+  buffer.save_meta_in_current_buffer(vim.split(self:dump(),'\n'), FRONTMATTER_BOUNDARY, self._fm_start, self._fm_end)
 end
 
 function Note:update_modified_curbuf()
@@ -92,7 +92,7 @@ function Note:change_title_current_buffer(new_title)
     return true
   elseif self._inline_title_line_nr then
     local line_nr = self._inline_title_line_nr
-    vim.fn.setline(line_nr, '# ' .. new_title)
+    utils.set_line(line_nr, '# ' .. new_title)
     return true
   end
   return false

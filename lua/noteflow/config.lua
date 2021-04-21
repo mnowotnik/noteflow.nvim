@@ -1,4 +1,5 @@
 
+local F = require('plenary.functional')
 local path = require('plenary.path')
 local utils = require('noteflow.utils')
 local assert_fmt = utils.assert_fmt
@@ -69,6 +70,8 @@ function config.setup(opts)
   else
     _data.daily_dir = DEFAULT_DAILY_DIR
   end
+	config.extended_markdown = opts.extended_markdown or false
+	config.on_open = opts.on_open or function() end
 end
 
 return setmetatable(config, mt)

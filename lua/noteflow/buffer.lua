@@ -55,28 +55,22 @@ function M.current_buffer_iterator()
   }
 
   local obj = {
-    lines = vim.fn.getline(1, "$"),
+    -- lines = vim.fn.getline(1, "$"),
+    lines = vim.api.nvim_buf_get_lines(0,0,-1,true),
     i = 1
   }
   return setmetatable(obj, mt)
 end
 
 
-function M.save_meta_in_current_buffer(meta_str, boundary, fm_start, fm_end)
+function M.save_meta_in_current_buffer(lines, boundary, fm_start, fm_end)
+	print(fm_start,fm_end)
   local view = vim.fn.winsaveview()
   if fm_end then
-    local cut_start = fm_start + 1
-    local cut_end = fm_end - 1
-    if cut_start <= cut_end then
-      vim.cmd( cut_start .. ',' .. cut_end .. 'd _')
-    end
-    vim.fn.setpos('.', {0,0,0,fm_start})
-    vim.fn.execute("normal A\n" .. meta_str)
+		vim.api.nvim_buf_set_lines(0,fm_start,fm_end-1,true,lines)
   else
-    vim.fn.setpos('.', {0,0,0,1})
-    vim.fn.execute(utils.interp("normal i${b}\n${fm}\n${b}", {b=boundary,fm=meta_str}))
+		vim.api.nvim_buf_set_lines(0,0,0,true,vim.tbl_flatten({boundary,lines,boundary}))
   end
-  vim.cmd'stopinsert'
   vim.fn.winrestview(view)
 end
 
