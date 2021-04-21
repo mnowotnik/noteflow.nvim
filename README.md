@@ -148,10 +148,6 @@ nn <leader>ns :NoteflowStagedGrep<cr>
 nn <leader>nl :NoteflowInsertLink<cr>
 ```
 
-
-To enable omnicompletion for wikilinks and tags in Telescope prompt and to use
-Ctrl-] to jump to a linked note.
-
 ## Vault structure
 
 You can either keep every note in a single directory, in many small ones or a
