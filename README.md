@@ -107,10 +107,6 @@ By using a plugin manager:
 In your neovim lua configuration files add:
 
 ```lua
- -- turn on experimental markdown extension
- -- currently compatible with vim-markdown
-vim.g.noteflow_extended_markdown = 1
-
 require('noteflow').setup({
     vault_dir = "~/Notes", -- nuff said
 
@@ -151,10 +147,6 @@ nn <leader>ng :NoteflowGrep<cr>
 nn <leader>ns :NoteflowStagedGrep<cr>
 nn <leader>nl :NoteflowInsertLink<cr>
 ```
-
-
-To enable omnicompletion for wikilinks and tags in Telescope prompt and to use
-Ctrl-] to jump to a linked note.
 
 ## Vault structure
 
