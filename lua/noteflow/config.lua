@@ -74,4 +74,29 @@ function config.setup(opts)
 	config.on_open = opts.on_open or function() end
 end
 
+function config.find_command(opts)
+  opts = opts or {}
+  local args = {'rg', '--files', '-tmd'}
+  local ignore_fp = utils.from_paths(config.vault_dir, '.noteflowignore')
+  if ignore_fp:exists() then
+    table.insert(args, '--ignore-file')
+    table.insert(args, ignore_fp:absolute())
+  end
+  table.insert(args, opts.dir or '.')
+  return args
+end
+
+function config.grep_command(opts)
+  assert(opts)
+  assert(opts.prompt)
+  local args =  {'rg', '--vimgrep', '-i', '-F', opts.prompt }
+  local ignore_fp = utils.from_paths(config.vault_dir, '.noteflowignore')
+  if ignore_fp:exists() then
+    table.insert(args, '--ignore-file')
+    table.insert(args, ignore_fp:absolute())
+  end
+  table.insert(args, opts.dir or '.')
+  return args
+end
+
 return setmetatable(config, mt)

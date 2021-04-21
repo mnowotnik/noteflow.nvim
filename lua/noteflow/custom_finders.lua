@@ -9,7 +9,6 @@ local parse_tags_prompt = utils.parse_tags_prompt
 local startswith = utils.startswith
 
 local DEFAULT_FZF_ARGS = {'--delimiter', ':', '--with-nth', '-1', '--filter'}
-local SCAN_DELAY_MS = 100
 
 local M = {}
 
@@ -83,23 +82,18 @@ end
 function M.indexing_finder(opts) return IndexingFinder:new{opts} end
 
 function M.two_stage_file_finder(opts)
-  -- FIXME: switch to supported API when available
+  -- FIXME: switch to finders.new_job
   return finders._new{
     fn_command = function(_, prompt)
       if opts.min_characters then
         if #prompt < opts.min_characters then return {command = 'true'} end
       end
-      local rg_args = opts.rg_args_maker(prompt)
-      local fzf_args
-      if opts.fzf_args_maker then
-        fzf_args = opts.fzf_args_maker(prompt)
-      else
-        fzf_args = vim.tbl_flatten({DEFAULT_FZF_ARGS, prompt or ""})
-      end
+      local grep_args = opts.grep_args_maker(prompt)
+      local find_args = opts.find_args_maker(prompt)
       return {
-        writer = Job:new{command = 'rg', args = rg_args, cwd = opts.cwd},
-        command = 'fzf',
-        args = fzf_args
+        writer = Job:new{command = grep_args[1], args = vim.list_slice(grep_args, 2), cwd = opts.cwd},
+        command = find_args[1],
+        args = vim.list_slice(find_args,2)
       }
     end,
     entry_maker = opts.entry_maker or make_entry.gen_from_file(opts)

@@ -253,14 +253,14 @@ local staged_grep = function(opts)
     end
     return rg_prompt, fzf_prompt
   end
-  opts.rg_args_maker = function(prompt)
+  opts.grep_args_maker = function(prompt)
       local rg_prompt, _ = parse_prompt(prompt)
-      return {'--vimgrep', '-i', '-F', rg_prompt, "." }
+      return config.grep_command({prompt=rg_prompt})
   end
-  opts.fzf_args_maker = function(prompt)
+  opts.find_args_maker = function(prompt)
       local _, fzf_prompt = parse_prompt(prompt)
       fzf_prompt = fzf_prompt or ""
-      return vim.tbl_flatten({{'--delimiter',':','--with-nth','-1','--filter'}, fzf_prompt})
+      return {'fzf', '--delimiter',':','--with-nth','-1','--filter', fzf_prompt}
   end
   opts.entry_maker = make_entry.gen_from_vimgrep(opts)
   opts.min_characters = 1
@@ -286,7 +286,7 @@ local live_grep = function(opts)
       if not prompt or prompt == "" then
         return nil
       end
-      return vim.tbl_flatten { telescope_conf.vimgrep_arguments, '-i', '-F',prompt, '.' }
+      return config.grep_command({prompt=prompt})
     end,
     opts.entry_maker or make_entry.gen_from_vimgrep(opts),
     opts.max_results,

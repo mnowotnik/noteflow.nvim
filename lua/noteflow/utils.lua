@@ -184,7 +184,6 @@ function M.assert_fmt(cond, msg, ...)
 	assert(cond, msg:format(unpack(inspected)))
 end
 
--- FIXME remove after plenary properly resolves paths
 function M.from_paths(...)
   local args = {...}
   local expand = args.expand
@@ -193,6 +192,7 @@ function M.from_paths(...)
   end
   local dirty_path = path:new(args)
   local clean = dirty_path:normalize()
+  -- FIXME remove after plenary properly resolves paths
   clean = clean:gsub('/./', '/')
   if expand then
     clean = path:new(clean):expand()

@@ -37,16 +37,11 @@ function mt:refresh(opts)
   end
   local processing = 0
   local processed = 0
-  local args = {'--files', '-tmd', '.'}
-  local ignore_fp = from_paths(config.vault_dir, '.noteflowignore')
-  if ignore_fp:exists() then
-    table.insert(args, '--ignore-file')
-    table.insert(args, ignore_fp:absolute())
-  end
+  local args = config.find_command()
   local vault_dir = config.vault_dir
   local job = Job:new{
-    command = 'rg',
-    args = args,
+    command =  args[1],
+    args = vim.list_slice(args, 2),
     cwd = vault_dir,
     on_stdout = function(_,fn,_)
       fn = from_paths(vault_dir, fn):absolute()
