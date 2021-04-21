@@ -107,10 +107,6 @@ By using a plugin manager:
 In your neovim lua configuration files add:
 
 ```lua
- -- turn on experimental markdown extension
- -- currently compatible with vim-markdown
-vim.g.noteflow_extended_markdown = 1
-
 require('noteflow').setup({
     vault_dir = "~/Notes", -- nuff said
 
