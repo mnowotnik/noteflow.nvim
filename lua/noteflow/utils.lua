@@ -194,9 +194,7 @@ function M.from_paths(...)
   local clean = dirty_path:normalize()
   -- FIXME remove after plenary properly resolves paths
   clean = clean:gsub('/./', '/')
-  if expand then
-    clean = path:new(clean):expand()
-  end
+  clean = path:new(clean):expand()
   return path:new(clean)
 end
 
