@@ -41,9 +41,9 @@ Best used under source control.
 
 ## Features
 
-You can see some of the features in action in this cast:
+- Live preview (powered by [mume](https://github.com/shd101wyy/mume))
 
-[![asciicast](https://asciinema.org/a/405771.svg)](https://asciinema.org/a/405771)
+![live preview](https://user-images.githubusercontent.com/8244123/115910142-01dae000-a45c-11eb-8a4e-18572ff68a03.gif)
 
 - Powered, mainly, by the amazing [Telescope](https://github.com/nvim-telescope/telescope.nvim)
 - Fuzzy searching by title and tags
@@ -60,6 +60,8 @@ You can see some of the features in action in this cast:
 - Quickly change a word into a reference (wikilink with a description)
 - Limited additional markdown support (wikilink highlighting etc.)
 - Autocompletion based on omnifunc
+
+Check out usage example on this [ascii cast](https://asciinema.org/a/405771).
 
 ## Requirements
 

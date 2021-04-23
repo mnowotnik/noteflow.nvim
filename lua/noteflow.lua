@@ -621,7 +621,7 @@ end
 
 function M:setup(opts)
   config.setup(opts)
-  -- TODO run autocmd on vault_dir change
+  -- TODO rebind autocmd on vault_dir change
   local buffer_setup_au = string.format([[autocmd BufEnter %s lua require('noteflow'):_buffer_setup()]], config.vault_dir .. '/*.md')
   vim.api.nvim_command(buffer_setup_au)
 end
@@ -641,6 +641,10 @@ function M:rename_note(new_title)
     end
   end
   vim.cmd('buffer ' .. bufnr)
+end
+
+function M:preview()
+	require('noteflow.preview').open_preview()
 end
 
 M.__index = M
