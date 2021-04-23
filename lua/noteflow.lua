@@ -174,7 +174,9 @@ local on_choose_from_table_factory = function(args)
         actions.select_default:replace(function()
           local selection = action_state.get_selected_entry()
           actions.close(prompt_bufnr)
-          callback(selection.value)
+          vim.schedule(function()
+            callback(selection.value)
+          end)
         end)
         return true
       end
