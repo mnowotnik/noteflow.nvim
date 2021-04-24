@@ -66,7 +66,6 @@ Check out usage example on this [ascii cast](https://asciinema.org/a/405771).
 ## Requirements
 
 - [neovim](https://github.com/neovim/neovim/releases) 0.5.0+
-- [fzf](https://github.com/junegunn/fzf)
 - [ripgrep](https://github.com/BurntSushi/ripgrep)
 - nodejs
 
@@ -94,6 +93,7 @@ By using a plugin manager:
     use 'nvim-lua/plenary.nvim'
     use 'nvim-telescope/telescope.nvim'
     use 'nvim-lua/popup.nvim'
+    use {'nvim-telescope/telescope-fzf-native.nvim', run = 'make' }
 ```
 
 - vim-plug
@@ -102,6 +102,7 @@ By using a plugin manager:
     Plug 'nvim-lua/plenary.nvim'
     Plug 'nvim-telescope/telescope.nvim'
     Plug 'nvim-lua/popup.nvim'
+    Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }
 ```
 
 

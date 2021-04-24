@@ -537,12 +537,13 @@ function M:edit_tags()
   end
 
   local picker
+
   picker = pickers.new({
     prompt_title = "Edit tags. <space> to toggle, <C-T> to create new",
     selection_strategy = 'row',
     sorting_strategy = 'ascending',
     finder = make_finder(),
-    sorter = telescope_conf.generic_sorter(),
+    sorter = require('telescope').extensions.fzf.native_fzf_sorter(),
     attach_mappings = function(prompt_bufnr, map)
       map('i', '<C-t>', function()
         local tag = action_state.get_current_line()
@@ -624,6 +625,20 @@ end
 
 function M:setup(opts)
   config.setup(opts)
+  vim.schedule(function()
+  local ok, ext = pcall(function() return require('telescope').extensions.fzf end)
+  if not ok then
+    require('telescope').setup {
+      extensions = {
+        fzf = {
+          case_mode = "smart_case",        -- or "ignore_case" or "respect_case"
+        }
+      }
+    }
+    require('telescope').load_extension('fzf')
+  end
+
+  end)
   -- TODO rebind autocmd on vault_dir change
   local buffer_setup_au = string.format([[autocmd BufEnter %s lua require('noteflow'):_buffer_setup()]], config.vault_dir .. '/*.md')
   vim.api.nvim_command(buffer_setup_au)
