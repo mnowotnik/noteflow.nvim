@@ -68,6 +68,7 @@ Check out usage example on this [ascii cast](https://asciinema.org/a/405771).
 - [neovim](https://github.com/neovim/neovim/releases) 0.5.0+
 - [fzf](https://github.com/junegunn/fzf)
 - [ripgrep](https://github.com/BurntSushi/ripgrep)
+- nodejs
 
 ## Try it out!
 
