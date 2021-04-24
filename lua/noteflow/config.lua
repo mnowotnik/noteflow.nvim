@@ -89,7 +89,7 @@ end
 function config.grep_command(opts)
   assert(opts)
   assert(opts.prompt)
-  local args =  {'rg', '--vimgrep', '-i', '-F', opts.prompt }
+  local args =  {'rg','-tmd', '--vimgrep', '-i', '-F', opts.prompt }
   local ignore_fp = utils.from_paths(config.vault_dir, '.noteflowignore')
   if ignore_fp:exists() then
     table.insert(args, '--ignore-file')

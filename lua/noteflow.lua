@@ -239,7 +239,7 @@ function M:find_note_by_title()
 end
 
 local staged_grep = function(opts)
-  opts = {unpack(opts)} or {}
+  opts = vim.tbl_extend('keep', {}, opts or {})
 
   local fzf_separator = opts.fzf_separator or "|"
 
@@ -267,19 +267,31 @@ local staged_grep = function(opts)
   opts.entry_maker = make_entry.gen_from_vimgrep(opts)
   opts.min_characters = 1
 
+
+  -- sorter = sorters.Sorter:new {
+  --   scoring_function = function() return 0 end,
+
+  --   highlighter = function(_, prompt, display)
+  --     return fzy.positions(prompt, display)
+  --   end,
+  local a,b = parse_prompt('foo')
+  print(#a,#b)
   local fzy = require('telescope.algos.fzy')
   pickers.new(opts, {
     prompt_title = 'Notes:staged search',
     finder = custom_finders.two_stage_file_finder(opts),
     previewer = telescope_conf.grep_previewer(opts),
-    sorter = sorters.get_generic_fuzzy_sorter{higlighter=function(_, prompt, display)
-      local rg_prompt, fzf_prompt = parse_prompt(prompt)
-      if #fzf_prompt > 0 then
-        return fzy.positions(fzf_prompt, display)
-      else
-        return fzy.positions(rg_prompt, display)
+    sorter = sorters.Sorter:new {
+      scoring_function = function() return 0 end,
+      highlighter = function(_, prompt, display)
+        local rg_prompt, fzf_prompt = parse_prompt(prompt)
+        if #fzf_prompt > 0 then
+          return fzy.positions(fzf_prompt, display)
+        else
+          return fzy.positions(rg_prompt, display)
+        end
       end
-    end}
+    }
   }):find()
 end
 
@@ -331,18 +343,6 @@ function M:new_note(title)
   end)
 end
 
-function M:new_empty_note(title)
-  on_choose_folder(function(folder)
-    local templates = get_templates()
-    local tmpl = templates[vim.g.noteflow_default_template]
-    if not tmpl then
-      tmpl = templates['empty']
-    end
-    local p = notes.create_note_if_not_exists(folder, title, tmpl.content)
-    utils.open_file(p, {move_to_end=true})
-  end)
-end
-
 function M:_update_modified()
   if not vim.bo.modified then return end
   local meta = notes.parse_current_buffer()
@@ -354,7 +354,7 @@ function M:follow_wikilink()
   local wikilink = find_wikilink()
   if not wikilink or not wikilink.link then return end
 
-	log.fmt_debug("Found wikilink: %s", wikilink.link)
+  log.fmt_debug("Found wikilink: %s", wikilink.link)
 
   cache:refresh({wait_for_completion=true})
 
@@ -362,14 +362,14 @@ function M:follow_wikilink()
   if vim.trim(link) == "" then return end
   for fn, meta in pairs(cache) do
     if meta.title:lower() == link then
-			log.fmt_debug("Opening note for wikilink: %s", fn)
+      log.fmt_debug("Opening note for wikilink: %s", fn)
       utils.open_file(fn)
       return
     end
   end
-	log.fmt_debug("No notes found. Creating a new note for wikilink: %s", wikilink.link)
+  log.fmt_debug("No notes found. Creating a new note for wikilink: %s", wikilink.link)
 
-	self:new_note(wikilink.link)
+  self:new_note(wikilink.link)
 end
 
 local in_telescope = function()
@@ -423,11 +423,11 @@ function _G.noteflow_omnifunc(findstart, base)
 end
 
 function M:insert_link()
-	-- already in wikilink?
+  -- already in wikilink?
   if find_wikilink() then
     return
   end
-	-- any non-empty word under cursor?
+  -- any non-empty word under cursor?
   local replace = string.find(vim.fn.expand('<cword>'), '[^%s]')
 
   local opts = {
@@ -476,9 +476,9 @@ function M:daily_note()
     daily_tmpl = DEFAULT_DAILY_TEMPLATE
   end
   local title = utils.current_date()
-	local p = notes.create_note_if_not_exists(daily_dir, title,
-		daily_tmpl)
-	utils.open_file(p, {move_to_end=true})
+  local p = notes.create_note_if_not_exists(daily_dir, title,
+    daily_tmpl)
+  utils.open_file(p, {move_to_end=true})
 end
 
 function M:edit_tags()
@@ -605,7 +605,7 @@ function M:_syntax_setup()
   if config.extended_markdown then extended_markdown() end
   utils.insert(commands,
     [[syn region NoteflowWikilink start="\[\[" end="\]\]"]],
-   	'hi link NoteflowWikilink Underlined')
+    'hi link NoteflowWikilink Underlined')
   -- apply after markdown syntax gets applied
   -- doesn't work when executed right away
   vim.schedule(function()
@@ -618,7 +618,7 @@ function M:_buffer_setup()
   utils.exec[=[
   augroup NoteflowAugroup
     autocmd! * <buffer>
-	  autocmd BufWrite <buffer> lua require('noteflow'):_update_modified()
+    autocmd BufWrite <buffer> lua require('noteflow'):_update_modified()
   augroup END
   ]=]
   pcall(config.on_open, vim.api.nvim_get_current_buf())
@@ -636,7 +636,7 @@ function M:rename_note(new_title)
   local old_title = cnote.title
   if not cnote:change_title_current_buffer(new_title) then return end
 
-	cache:refresh()
+  cache:refresh()
   local bufnr = vim.fn.bufnr()
   for _,note in pairs(cache) do
     if note:has_wikilinks_to(old_title) then
@@ -649,7 +649,7 @@ function M:rename_note(new_title)
 end
 
 function M:preview()
-	require('noteflow.preview').open_preview()
+  require('noteflow.preview').open_preview()
 end
 
 M.__index = M
