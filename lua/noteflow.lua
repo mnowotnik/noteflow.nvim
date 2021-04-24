@@ -72,7 +72,7 @@ end
 local find_note = function(opts)
   local fzy = require('telescope.algos.fzy')
   pickers.new(opts, {
-    finder = custom_finders.indexing_finder({cwd=config.vault_dir}),
+    finder = custom_finders.note_finder({cwd=config.vault_dir}),
     sorter = sorters.Sorter:new {
       scoring_function = function() return 0 end,
 
@@ -168,8 +168,8 @@ local on_choose_from_table_factory = function(args)
     end
     pickers.new(opts, {
       prompt_title = default_prompt,
-      finder = finders.new_table{results=results,entry_maker=opts.entry_maker},
-      sorter = telescope_conf.generic_sorter(opts),
+      finder = custom_finders.fzf_finder{results=results,entry_maker=opts.entry_maker},
+      sorter = sorters.highlighter_only(),
       attach_mappings = function(prompt_bufnr)
         actions.select_default:replace(function()
           local selection = action_state.get_selected_entry()
@@ -533,7 +533,9 @@ function M:edit_tags()
     if vim.tbl_count(all_tags) == 0 then
       all_tags = {'daily', 'some-example-tag'}
     end
-    return finders.new_table{results=all_tags,entry_maker=entry_maker}
+    return custom_finders.fzf_finder{results=all_tags, entry_maker=entry_maker}
+    -- poor matching currently
+    -- return finders.new_table{results=all_tags,entry_maker=entry_maker}
   end
 
   local picker
@@ -542,7 +544,7 @@ function M:edit_tags()
     selection_strategy = 'row',
     sorting_strategy = 'ascending',
     finder = make_finder(),
-    sorter = telescope_conf.generic_sorter(),
+    sorter = sorters.highlighter_only(),
     attach_mappings = function(prompt_bufnr, map)
       map('i', '<C-t>', function()
         local tag = action_state.get_current_line()

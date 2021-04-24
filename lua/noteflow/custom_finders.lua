@@ -1,6 +1,6 @@
-local make_entry = require('telescope.make_entry')
 local finders = require('telescope.finders')
 local Job = require('plenary.job')
+local make_entry = require('telescope.make_entry')
 
 local cache = require('noteflow.cache')
 local utils = require('noteflow.utils')
@@ -8,31 +8,19 @@ local utils = require('noteflow.utils')
 local parse_tags_prompt = utils.parse_tags_prompt
 local startswith = utils.startswith
 
-local DEFAULT_FZF_ARGS = {'--delimiter', ':', '--with-nth', '-1', '--filter'}
 
 local M = {}
 
-local IndexingFinder = {
-  __call = function(f, ...) return f:_find(...) end,
-  close = function() end
-}
-IndexingFinder.__index = IndexingFinder
-
-function IndexingFinder:new(opts)
+function M.note_finder(opts)
   opts = opts or {}
-
-  local obj = setmetatable({
-    cwd = opts.cwd,
-    maximum_results = opts.maximum_results,
-    entry_maker = make_entry.gen_from_string()
-  }, self)
+  local fzf_args = {'--delimiter', ':', '--with-nth', '-1', '--filter'}
 
   local find = function(finder, raw_prompt, process_result, process_complete)
     local tags, prompt = parse_tags_prompt(raw_prompt)
 
     local fzf_job = Job:new{
       command = 'fzf',
-      args = vim.tbl_flatten({DEFAULT_FZF_ARGS, prompt or ""}),
+      args = vim.tbl_flatten({fzf_args, prompt or ""}),
       maximum_results = finder.maximum_results,
       enable_recording = false,
 
@@ -71,15 +59,57 @@ function IndexingFinder:new(opts)
     for fn, val in pairs(cache) do fzf_job:send(fn .. ':' .. val.title .. '\n') end
     fzf_job.stdin:write('\n', function() fzf_job.stdin:close() end)
   end
-  obj._find = coroutine.wrap(function(...)
-    cache:refresh()
-    find(...)
-    while true do find(coroutine.yield()) end
-  end)
+
+  local obj = setmetatable({
+    maximum_results = opts.maximum_results,
+  }, {
+    __call = coroutine.wrap(function(...)
+      cache:refresh()
+      find(...)
+      while true do find(coroutine.yield()) end
+    end)
+  })
+
   return obj
 end
 
-function M.indexing_finder(opts) return IndexingFinder:new{opts} end
+function M.fzf_finder(opts)
+  assert(opts)
+  assert(opts.results)
+  local fzf_args = {'--filter'}
+  local entry_maker = opts.entry_maker or make_entry.gen_from_string()
+
+  local find = function(finder, raw_prompt, process_result, process_complete)
+    local tags, prompt = parse_tags_prompt(raw_prompt)
+
+    local fzf_job = Job:new{
+      command = 'fzf',
+      args = vim.tbl_flatten({fzf_args, prompt or ""}),
+      maximum_results = finder.maximum_results,
+      enable_recording = false,
+      on_stdout = function(_, line, _)
+        process_result(entry_maker(line))
+      end,
+      on_stderr = function(_, error, _) utils.log_error('Error running fzf', error) end,
+      on_exit = function() process_complete() end
+    }
+    fzf_job:start()
+    for _, val in ipairs(opts.results) do fzf_job:send(val .. '\n') end
+    fzf_job.stdin:write('\n', function() fzf_job.stdin:close() end)
+  end
+
+  local obj = setmetatable({
+    maximum_results = opts.maximum_results,
+  }, {
+    __call = coroutine.wrap(function(...)
+      cache:refresh()
+      find(...)
+      while true do find(coroutine.yield()) end
+    end)
+  })
+
+  return obj
+end
 
 function M.two_stage_file_finder(opts)
   -- FIXME: switch to finders.new_job
