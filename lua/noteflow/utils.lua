@@ -217,5 +217,33 @@ function M.buf_path(bufnr)
   return vim.uri_to_fname(vim.uri_from_bufnr(bufnr or 0))
 end
 
+function M.async(fun)
+  return function(...)
+    local running = coroutine.running()
+    if not running then
+      local c = coroutine.create(fun)
+      vim.schedule(function()
+        coroutine.resume(c)
+      end)
+      return
+    end
+
+    local args = {...}
+    local c = coroutine.create(function()
+      local r = {fun(unpack(args))}
+      vim.schedule(function()
+        coroutine.resume(running, unpack(r))
+      end)
+    end)
+    coroutine.resume(c)
+
+    return coroutine.yield()
+  end
+end
+
+function M.tick()
+  return M.async(function() end)
+end
+
 return M
 
