@@ -1,4 +1,4 @@
-
+SHELL := /usr/bin/bash
 # TODO:
 # - lint
 # - format
@@ -31,5 +31,6 @@ testfile: deps
 demo: deps
 	XDG_CONFIG_HOME=${PWD}/demo XDG_DATA_HOME=${PWD}/deps nvim --noplugin -u demo/init.vim -c "set rtp+=${PWD}"
 
+# ignore warnings
 lint:
-	luacheck lua
+	luacheck lua; (( $$? == 0 )) || (( $$? == 1 ))
