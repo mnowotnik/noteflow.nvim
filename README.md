@@ -89,7 +89,7 @@ By using a plugin manager:
 
 - packer
 ```lua
-    use 'mnowotnik/noteflow.nvim'
+    use {'mnowotnik/noteflow.nvim', run = 'bash build.sh'}
     use 'nvim-lua/plenary.nvim'
     use 'nvim-telescope/telescope.nvim'
     use 'nvim-lua/popup.nvim'
@@ -97,7 +97,7 @@ By using a plugin manager:
 
 - vim-plug
 ```viml
-    Plug 'mnowotnik/noteflow.nvim'
+    Plug 'mnowotnik/noteflow.nvim', { 'do': 'bash build.sh' }
     Plug 'nvim-lua/plenary.nvim'
     Plug 'nvim-telescope/telescope.nvim'
     Plug 'nvim-lua/popup.nvim'
