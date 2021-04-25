@@ -590,7 +590,7 @@ function M:_syntax_setup()
   local commands = {}
   local function extended_markdown()
     local has_vim_markdown = vim.fn.exists('HeaderDecrease')
-    if has_vim_markdown then
+    if has_vim_markdown == true then
       utils.insert(
         commands,
         'syn clear mkdListItemLine',
