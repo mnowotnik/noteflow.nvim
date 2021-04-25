@@ -18,7 +18,6 @@ lua << EOF
 
 require('noteflow'):setup({
   vault_dir = require('os').getenv('PWD') .. '/demo',
-  extended_markdown = true,
   on_open = function(bufnr)
     vim.api.nvim_exec([=[
       setl omnifunc=v:lua.noteflow_omnifunc

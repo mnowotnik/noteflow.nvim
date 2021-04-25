@@ -70,8 +70,12 @@ function config.setup(opts)
   else
     _data.daily_dir = DEFAULT_DAILY_DIR
   end
-	config.extended_markdown = opts.extended_markdown or false
 	config.on_open = opts.on_open or function() end
+	config.syntax = config.syntax or {}
+	config.syntax = vim.tbl_extend('keep', config.syntax, {
+		wikilink = true,
+		todo = true
+	})
 end
 
 function config.find_command(opts)

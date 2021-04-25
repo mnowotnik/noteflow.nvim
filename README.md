@@ -126,7 +126,6 @@ require('noteflow').setup({
 
     -- optional hook to make daily note filename
     make_daily_slug = function(title) return title end,
-    extended_markdown = true,
 
     -- on buffer open hook
     on_open = function(bufnr)
@@ -135,7 +134,14 @@ require('noteflow').setup({
         setl omnifunc=v:lua.noteflow_omnifunc
         nn <buffer> <silent> <C-]> :lua require('noteflow').follow_wikilink()<cr>
         ]=], false)
-    end
+    end,
+
+    -- custom highlighting in buffer, enabled by default
+    -- will overwrite user's highlighting
+    syntax = {
+        todo = true,
+        wikilink = true
+    }
 })
 ```
 

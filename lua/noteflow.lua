@@ -585,36 +585,19 @@ function M:edit_tags()
 end
 
 function M:_syntax_setup()
-  -- TODO switch to treesitter api?
   if not self:_noteflow_ftdetect() then return end
-  local commands = {}
-  local function extended_markdown()
-    local has_vim_markdown = vim.fn.exists('HeaderDecrease')
-    if has_vim_markdown == true then
-      utils.insert(
-        commands,
-        'syn clear mkdListItemLine',
-        'syn clear mkdNonListItemBlock'
-      )
-    end
-    utils.insert(commands,
-      [[syn region mkdTodoStrike matchgroup=htmlStrike start="\[x\]"ms=e+2 end="$"]],
-      'hi def link mkdTodoStrike htmlStrike'
-    )
+  local syntax = config.syntax
+  if syntax.todo then
+    vim.fn.matchadd("htmlStrike", "- \\[x\\] \\zs.\\+\\ze", 99)
   end
-  if config.extended_markdown then extended_markdown() end
-  utils.insert(commands,
-    [[syn region NoteflowWikilink start="\[\[" end="\]\]"]],
-    'hi link NoteflowWikilink Underlined')
-  -- apply after markdown syntax gets applied
-  -- doesn't work when executed right away
-  vim.schedule(function()
-    utils.exec(table.concat(commands, '\n'))
-  end)
+  if syntax.wikilink then
+    vim.fn.matchadd("Underlined", "\\[\\[[^\\[]\\+\\]\\]", 99)
+  end
 end
 
 function M:_buffer_setup()
   if not self:_noteflow_ftdetect() then return end
+  self:_syntax_setup()
   utils.exec[=[
   augroup NoteflowAugroup
     autocmd! * <buffer>
