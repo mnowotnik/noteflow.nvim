@@ -106,6 +106,7 @@ local find_note = function(opts)
     },
     previewer = telescope_conf.file_previewer(opts),
     attach_mappings = function(prompt_bufnr, map)
+      vim.api.nvim_buf_set_option(prompt_bufnr, 'omnifunc', 'v:lua._noteflow_telescope_omnifunc')
       map("i", "<C-x>", false)
       if opts.attach_mappings then
         return opts.attach_mappings(prompt_bufnr, map)
@@ -367,49 +368,40 @@ local in_telescope = function()
   return action_state.get_current_picker(vim.api.nvim_get_current_buf()) ~= nil
 end
 
+function _G._noteflow_telescope_omnifunc(findstart, base)
+  if findstart == 1 then
+    local line = vim.api.nvim_get_current_line()
+    local curpos = vim.fn.col('.')
+    local line_to_cur = line:sub(1,curpos)
+    -- tag completion
+    local startpos,endpos = string.find(line_to_cur, '#%w*$')
+    return startpos or -3
+  elseif findstart == 0 then
+    local all_tags = get_all_tags()
+    if not base or base == "" then
+      return all_tags
+    end
+    return vim.tbl_filter(function(tag) return vim.startswith(tag, base) end, all_tags)
+  end
+end
+
 function _G.noteflow_omnifunc(findstart, base)
   if findstart == 1 then
     local line = vim.api.nvim_get_current_line()
     local curpos = vim.fn.col('.')
-    local startpos
-    if in_telescope() then
-      local line_to_cur = line:sub(1,curpos)
-      -- tag completion
-      startpos,_,_ = vim_find_rev(line_to_cur, '\\w*#', 1)
-    else
-      startpos = find_wikilink_open_start(line, curpos)
-      if not startpos then return end
-      vim.schedule(function()
-        find_note({
-          prompt_title = 'Choose wikilink note',
-          attach_mappings = function(prompt_bufnr)
-            actions.select_default:replace(function()
-              local selection = action_state.get_selected_entry()
-              actions.close(prompt_bufnr)
-              local title = cache[selection.value].title
-              local mode = 'i'
-              local _, _, col, _ = unpack(vim.fn.getpos('.'))
-              if col >= #vim.fn.getline('.') then
-                mode = 'a'
-              end
-              local pos = vim.fn.getpos('.')
-              vim.defer_fn(function()
-                vim.fn.setpos('.', pos)
-                utils.vim_exec{'normal ' .. mode .. title, restore_register=true}
-              end, 10)
-            end)
-            return true
-          end})
-        end)
-        return -2
-      end
-    -- to 0-indexed and then move 1 to the right
-    if startpos then return startpos - 1 + 1 else return -3 end
-  elseif findstart == 0 then
-    if in_telescope() then
-      return get_all_tags()
+    local line_to_cur = line:sub(1,curpos)
+    local _,endpos = find_wikilink_open_start(line_to_cur, curpos)
+    if endpos then
+      cache:refresh()
     end
-    return {}
+    return endpos or -3
+  elseif findstart == 0 then
+    if not base or base == "" then
+      return vim.tbl_values(vim.tbl_map(function(note) return note.title end, cache))
+    end
+    return vim.tbl_values(vim.tbl_map(function(note) return note.title end,
+      vim.tbl_filter(function(note) return vim.startswith(note.title, base)  end,
+      cache)))
   end
 end
 

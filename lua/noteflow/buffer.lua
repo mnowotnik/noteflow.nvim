@@ -5,7 +5,6 @@ local utils = require('noteflow.utils')
 local wikilinks_iterator = utils.wikilinks_iterator
 
 local M = {}
-local BOUNDARY_VIM_PAT = '\\(\\]\\]\\|\\[\\[\\)'
 
 function M.find_wikilink_under_cursor(line)
 	if not line then
@@ -21,13 +20,12 @@ function M.find_wikilink_under_cursor(line)
 end
 
 function M.find_wikilink_open_start(line, curpos)
-  -- TODO try to use vim api
   local line_to_cur = line:sub(1,curpos-1)
-  local o_start,o_end,match = utils.vim_find_rev(line_to_cur, BOUNDARY_VIM_PAT, 2)
-  if not match or match == ']]' then return nil end
-  local startpos = string.find(line,'%]%]', curpos)
-  if startpos and startpos < curpos then return nil end
-  return o_start, o_end
+  local startpos = line_to_cur:find('(%[%[)[^%[]*$')
+	if startpos then
+		return startpos,startpos+1
+	end
+	return
 end
 
 function M.show_input_dialog(message, callback)
