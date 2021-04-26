@@ -132,7 +132,12 @@ require('noteflow').setup({
         -- buffer local bindings and options
         vim.api.nvim_exec([=[
         setl omnifunc=v:lua.noteflow_omnifunc
-        nn <buffer> <silent> <C-]> :lua require('noteflow').follow_wikilink()<cr>
+        nn <buffer> <silent> <C-]> :NoteflowFollowWikilink<cr>
+
+        set nonumber
+        set norelativenumber
+        set signcolumn=yes:1
+        hi SignColumn guibg=bg
         ]=], false)
     end,
 
