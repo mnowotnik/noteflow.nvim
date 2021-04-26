@@ -76,13 +76,11 @@ local find_note = function(opts)
     sorter = sorters.Sorter:new {
       scoring_function = function() return 0 end,
 
-      highlighter = function(_, _, display)
-        -- ignored telescope prompt (second param) cause it has incorrect values
-        local raw_prompt = vim.fn.getline('.'):sub(2)
+      highlighter = function(_, prompt, display)
         if display == "" then
           return {}
         end
-        local prompt_tags, title_prompt = parse_tags_prompt(raw_prompt)
+        local prompt_tags, title_prompt = parse_tags_prompt(prompt)
         local title, tags = unpack(vim.split(display, '\t'))
         local hl = fzy.positions(title_prompt, title)
         -- match tags regardless of order on the prompt line
@@ -267,13 +265,6 @@ local staged_grep = function(opts)
   opts.entry_maker = make_entry.gen_from_vimgrep(opts)
   opts.min_characters = 1
 
-
-  -- sorter = sorters.Sorter:new {
-  --   scoring_function = function() return 0 end,
-
-  --   highlighter = function(_, prompt, display)
-  --     return fzy.positions(prompt, display)
-  --   end,
   local a,b = parse_prompt('foo')
   print(#a,#b)
   local fzy = require('telescope.algos.fzy')
@@ -438,10 +429,7 @@ function M:insert_link()
         if not selection then return end
         actions.close(prompt_bufnr)
         local title = cache[selection.value].title
-        -- FIXME telescope incorrectly restores pos
-        local oldpos = vim.fn.getpos('.')
         vim.defer_fn(function()
-          vim.fn.setpos('.', oldpos)
           if replace then
             utils.vim_exec{'normal ciw[[' .. title .. '|' .. termcodes.c_r .. '\"' .. ']]' .. termcodes.esc, restore_register=true}
           else
