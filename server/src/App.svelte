@@ -11,6 +11,11 @@
     noteTitle = command.params.html;
     innerHTML(document.body, noteHtml);
     await tick();
+    document.querySelectorAll("input[type=checkbox").forEach((c) => {
+      if (c.attributes.checked) {
+        c.checked = true;
+      }
+    });
     let scriptText = document.querySelector("body>script")?.innerHTML;
     if (scriptText) {
       let scriptTextNode = document.createTextNode(scriptText);
@@ -18,7 +23,7 @@
       newScript.appendChild(scriptTextNode);
       document.querySelector("body")?.appendChild(newScript);
     }
-  })
+  });
   let noteHtml = "";
   let noteTitle = "";
 </script>
