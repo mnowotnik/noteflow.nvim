@@ -103,7 +103,7 @@ By using a plugin manager:
     Plug 'nvim-lua/plenary.nvim'
     Plug 'nvim-telescope/telescope.nvim'
     Plug 'nvim-lua/popup.nvim'
-    Plug 'kyazdani42/nvim-web-devicons' -- optional, use with nerd fonts
+    Plug 'kyazdani42/nvim-web-devicons' " optional, use with nerd fonts
 ```
 
 
