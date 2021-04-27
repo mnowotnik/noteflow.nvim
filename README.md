@@ -1,5 +1,7 @@
 # Noteflow
 
+![](https://user-images.githubusercontent.com/8244123/116300920-fc98d080-a78e-11eb-815e-b096f8cbc2bd.png)
+
 > Note: Beta-level software that frequently changes. Feel free to create feature requests.
 > Commands probably won't change, but backing up or putting your notes under source control before using is highly recommended.
 
