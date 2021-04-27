@@ -578,12 +578,14 @@ end
 function M:_buffer_setup()
   if not self:_noteflow_ftdetect() then return end
   self:_syntax_setup()
-  utils.exec[=[
-  augroup NoteflowAugroup
-    autocmd! * <buffer>
-    autocmd BufWrite <buffer> lua require('noteflow'):_update_modified()
-  augroup END
-  ]=]
+  if config.update_modified_on_save then
+    utils.exec[=[
+      augroup NoteflowOnSave
+      autocmd! * <buffer>
+      autocmd BufWrite <buffer> lua require('noteflow'):_update_modified()
+      augroup END
+    ]=]
+  end
   pcall(config.on_open, vim.api.nvim_get_current_buf())
 end
 

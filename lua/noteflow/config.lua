@@ -54,26 +54,27 @@ function mt.__newindex(_, key, val)
 end
 
 function config.setup(opts)
-	local default_opts = {
-		vault_dir = nil,
-		templates_dir = DEFAULT_TMPL_DIR,
-		daily_dir = DEFAULT_DAILY_DIR,
-		daily_template = nil,
-		default_template = nil,
-		syntax = {
-			wikilink = true,
-			todo = true
-		},
-		on_open = function() end,
-		update_modified_on_save = true,
-		make_note_slug = nil,
-		make_daily_slug = nil,
-	}
-	opts = vim.tbl_deep_extend('keep', {}, opts)
-	opts = vim.tbl_deep_extend('keep', opts, default_opts)
-	for name,val in pairs(opts) do
-		config[name] = val
-	end
+  config.vault_dir = opts.vault_dir
+  local default_opts = {
+    templates_dir = DEFAULT_TMPL_DIR,
+    daily_dir = DEFAULT_DAILY_DIR,
+    daily_template = nil,
+    default_template = nil,
+    syntax = {
+      wikilink = true,
+      todo = true,
+      fenced_block_overlay = false
+    },
+    on_open = function() end,
+    update_modified_on_save = true,
+    make_note_slug = nil,
+    make_daily_slug = nil,
+  }
+  opts = vim.tbl_deep_extend('keep', {}, opts)
+  opts = vim.tbl_deep_extend('keep', opts, default_opts)
+  for name,val in pairs(opts) do
+    config[name] = val
+  end
 end
 
 function config.find_command(opts)
