@@ -80,6 +80,8 @@ run `make demo` ! You need to have requirements installed, though.
 
 ```bash
 git clone https://github.com/mnowotnik/noteflow.nvim.git
+cd noteflow.nvim
+bash build.sh
 make demo
 ```
 
