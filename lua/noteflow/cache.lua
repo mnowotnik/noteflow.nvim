@@ -23,6 +23,10 @@ local cache = {}
 
 local already_run = false
 
+function mt:initialized()
+  return already_run
+end
+
 function mt:by_title(title)
   for _,note in pairs(self) do
     if note.title == title then return note end
@@ -32,7 +36,7 @@ end
 function mt:refresh(opts)
   opts = opts or {}
   local tmpl_dir = config.templates_dir
-  if not already_run then
+  if not already_run and not opts.silent then
     vim.cmd('echo "Refreshing note cache for the first time..."')
   end
   local processing = 0
@@ -67,9 +71,11 @@ function mt:refresh(opts)
         processed = processed + 1
       end)
     end
-
   }
   job:start()
+  if opts.async then
+    return
+  end
   job:wait(3000, 100)
   vim.wait(5000, function()
     return processed >= processing

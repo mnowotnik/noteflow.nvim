@@ -392,9 +392,6 @@ function _G.noteflow_omnifunc(findstart, base)
     local curpos = vim.fn.col('.')
     local line_to_cur = line:sub(1,curpos)
     local _,endpos = find_wikilink_open_start(line_to_cur, curpos)
-    if endpos then
-      cache:refresh()
-    end
     return endpos or -3
   elseif findstart == 0 then
     if not base or base == "" then
@@ -660,6 +657,9 @@ function M:_buffer_setup()
     ]=]
   end
   pcall(config.on_open, vim.api.nvim_get_current_buf())
+  if not cache:initialized() then
+    cache:refresh({async=true,silent=true})
+  end
 end
 
 function M:setup(opts)
