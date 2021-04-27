@@ -217,6 +217,9 @@ function M.buf_path(bufnr)
   return vim.uri_to_fname(vim.uri_from_bufnr(bufnr or 0))
 end
 
+-- TODO try to integrate uv.new_async
+-- local as = uv.new_async(fun)
+-- as:send(), as:close()
 function M.async(fun)
   return function(...)
     local running = coroutine.running()
@@ -243,6 +246,20 @@ end
 
 function M.tick()
   return M.async(function() end)
+end
+
+function M.debounce(fn, ms)
+  ms = ms or 100
+  local timer = vim.loop.new_timer()
+
+  local function wrapped_fn(...)
+    local args = {...}
+    timer:stop()
+    timer:start(ms, 0, function()
+      vim.schedule(function()fn(unpack(args))end)
+    end)
+  end
+  return wrapped_fn, timer
 end
 
 return M
