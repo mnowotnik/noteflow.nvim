@@ -497,7 +497,7 @@ function M:edit_tags()
   local entry_maker = function(line)
     local display = line
     if vim.tbl_contains(meta:get_fm_tags(), display) then
-      display = string.format('%s  %s','✔️', line)
+      display = string.format('%s %s','✅', line)
     else
       display = "   " .. line
     end
