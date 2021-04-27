@@ -63,7 +63,7 @@ Best used under source control.
 - Limited additional markdown support (wikilink highlighting etc.)
 - Autocompletion based on omnifunc
 
-Check out usage example in this [ascii cast](https://asciinema.org/a/405771).
+Check out a usage example in this [ascii cast](https://asciinema.org/a/405771).
 
 ## Requirements
 
