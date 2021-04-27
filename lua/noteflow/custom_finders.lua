@@ -100,6 +100,7 @@ function M.fzf_finder(opts)
 
   local obj = setmetatable({
     maximum_results = opts.maximum_results,
+    close = function() end
   }, {
     __call = coroutine.wrap(function(...)
       cache:refresh()
