@@ -7,6 +7,7 @@ local pickers = require('telescope.pickers')
 local finders = require('telescope.finders')
 local telescope_conf = require('telescope.config').values
 local sorters = require('telescope.sorters')
+local _, devicons = pcall(require,'nvim-web-devicons')
 
 local config = require('noteflow.config')
 local custom_finders = require('noteflow.custom_finders')
@@ -564,6 +565,59 @@ function M:edit_tags()
   picker:find()
 end
 
+local lang_to_ext = {
+  python = 'py',
+  bash = 'bash',
+  javascript = 'js'
+}
+
+local namespace
+
+local function redraw_line(linenr, line, y)
+  if y ~= linenr and vim.startswith(line, '```') then
+    local virt_text = {}
+    local lang = line:match('```([^ {]+)')
+    local offset
+    if devicons and lang then
+      local icon, hl_group = devicons.get_icon(nil, lang_to_ext[lang], {default=true})
+      offset = 2
+      table.insert(virt_text, {icon .. " ", hl_group})
+    elseif lang then
+      offset = #lang + 1
+      table.insert(virt_text, {lang .. " "})
+    else
+      offset = 0
+    end
+    local overlay =  string.rep('─', 30 - offset)
+    table.insert(virt_text,{overlay, 'NoteflowFence'})
+    vim.api.nvim_buf_set_extmark(0, namespace, linenr - 1, 0,
+    {virt_text=virt_text, virt_text_pos = 'overlay' })
+  end
+end
+
+local last_linenr
+
+function M:_redraw_line()
+  local cur = vim.api.nvim_win_get_cursor(0)
+  local y = cur[1]
+  if y == last_linenr then return end
+  vim.api.nvim_buf_clear_namespace(0, namespace, y - 1, y)
+  redraw_line(y, vim.api.nvim_buf_get_lines(0, y - 1, y, true)[1], y)
+  if last_linenr then
+    redraw_line(last_linenr, vim.api.nvim_buf_get_lines(0, last_linenr - 1, last_linenr, true)[1], y)
+  end
+  last_linenr = y
+end
+
+function M:_redraw_overlay()
+  local cur = vim.api.nvim_win_get_cursor(0)
+  local y = cur[1]
+  vim.api.nvim_buf_clear_namespace(0, namespace, 0, -1)
+  for linenr,line in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, true)) do
+    redraw_line(linenr, line, y)
+  end
+end
+
 function M:_syntax_setup()
   if not self:_noteflow_ftdetect() then return end
   local syntax = config.syntax
@@ -572,6 +626,19 @@ function M:_syntax_setup()
   end
   if syntax.wikilink then
     vim.fn.matchadd("Underlined", "\\[\\[[^\\[]\\+\\]\\]", 99)
+  end
+  if syntax.fenced_block_overlay then
+    if not namespace then
+      namespace = vim.api.nvim_create_namespace('noteflow')
+    end
+    utils.exec[=[
+      hi NoteflowFence guifg=gray
+      augroup NoteflowOnCursorMoved
+      autocmd! * <buffer>
+      autocmd CursorMoved,CursorMovedI <buffer> lua require('noteflow'):_redraw_line()
+      augroup END
+    ]=]
+    self:_redraw_overlay()
   end
 end
 

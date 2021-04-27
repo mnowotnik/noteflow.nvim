@@ -94,6 +94,7 @@ By using a plugin manager:
     use 'nvim-lua/plenary.nvim'
     use 'nvim-telescope/telescope.nvim'
     use 'nvim-lua/popup.nvim'
+    use 'kyazdani42/nvim-web-devicons' -- optional, use with nerd fonts
 ```
 
 - vim-plug
@@ -102,6 +103,7 @@ By using a plugin manager:
     Plug 'nvim-lua/plenary.nvim'
     Plug 'nvim-telescope/telescope.nvim'
     Plug 'nvim-lua/popup.nvim'
+    Plug 'kyazdani42/nvim-web-devicons' -- optional, use with nerd fonts
 ```
 
 
@@ -141,11 +143,11 @@ require('noteflow').setup({
         ]=], false)
     end,
 
-    -- custom highlighting in buffer, enabled by default
     -- will overwrite user's highlighting
     syntax = {
         todo = true,
-        wikilink = true
+        wikilink = true,
+        fenced_block_overlay = true -- false by default
     }
 })
 ```
@@ -183,6 +185,29 @@ You may have files in your Vault that you don't consider notes and you would
 like to prevent Noteflow from indexing them. Special file `.noteflowignore` exists
 for this purpose. Create it in the root of your Vault and define there
 ignore rules, one per line, like you would in `.gitignore`. With the compliments of [ripgrep](https://github.com/BurntSushi/ripgrep).
+
+## Highlighting
+
+Noteflow adds a few simple tweaks to Markdown highlighting that are controlled
+by flags in the configuration `syntax` group.
+
+`syntax.todo`
+
+Completed todo items (`- [x] foo bar`) are rendered as ~~strikethrough~~ text.
+
+`syntax.wikilink`
+
+Adds `Underlined` hl group to wikilinks.
+
+`syntax.fenced_block_overlay`
+
+Draws straight lines over code block fences. The first fence
+starts with the programming language of a code block.
+The language is rendered an icon from a patched [Nerd Font](https://github.com/ryanoasis/nerd-fonts)
+if [nvim-web-devicons](https://github.com/kyazdani42/nvim-web-devicons) is available.
+This option can potentially affect performance since it tracks cursor moved
+events. It is set to `false` by default.
+
 
 ## Development
 
