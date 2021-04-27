@@ -602,9 +602,15 @@ function M:_redraw_line()
   local y = cur[1]
   if y == last_linenr then return end
   vim.api.nvim_buf_clear_namespace(0, namespace, y - 1, y)
-  redraw_line(y, vim.api.nvim_buf_get_lines(0, y - 1, y, true)[1], y)
+  local lines = vim.api.nvim_buf_get_lines(0, y - 1, y, true)
+  if lines and #lines > 0 then
+    redraw_line(y,lines[1],y)
+  end
   if last_linenr then
-    redraw_line(last_linenr, vim.api.nvim_buf_get_lines(0, last_linenr - 1, last_linenr, true)[1], y)
+    lines = vim.api.nvim_buf_get_lines(0, last_linenr - 1, last_linenr, false)
+    if lines and #lines > 0 then
+      redraw_line(last_linenr,lines[1],y)
+    end
   end
   last_linenr = y
 end
