@@ -565,7 +565,16 @@ end
 local lang_to_ext = {
   python = 'py',
   bash = 'bash',
-  javascript = 'js'
+  javascript = 'js',
+  julia = 'jl',
+  viml = 'vim',
+  clojure = 'clj',
+  cpp = 'cc',
+  typescript = 'ts',
+  rust = 'rs',
+  kotlin = 'kt',
+  ['c#'] = 'cs',
+  latex = 'tex',
 }
 
 local namespace
@@ -576,7 +585,8 @@ local function redraw_line(linenr, line, y)
     local lang = line:match('```([^ {]+)')
     local offset
     if has_devicons and lang then
-      local icon, hl_group = devicons.get_icon(nil, lang_to_ext[lang], {default=true})
+      local icon, hl_group = devicons.get_icon(nil, lang_to_ext[lang:lower()]
+        or lang:lower(), {default=true})
       offset = 2
       table.insert(virt_text, {icon .. " ", hl_group})
     elseif lang then
