@@ -24,7 +24,7 @@ function mt.__index(_, key)
   return _data[key]
 end
 
-local make_path = function(name, p_str, assert_exists)
+local make_path = function(name, p_str)
   p_str = vim.trim(p_str)
   if not p_str or p_str == "" then
     return
@@ -34,20 +34,13 @@ local make_path = function(name, p_str, assert_exists)
   if name ~= VAULT_DIR and not p:is_absolute() then
     p = path:new(config[VAULT_DIR], p)
   end
-  if not p:exists() or not p:is_absolute() then
-    if assert_exists then
-      assert_fmt(false, "%s: %s doesn't exist!", name, p.filename)
-    else
-      return
-    end
-  end
   return p.filename
 end
 
 function mt.__newindex(_, key, val)
   if vim.tbl_contains(CONFIG_DIR_PATHS, key) then
     assert_fmt(val, "Value for %s is nil!", key)
-    _data[key] = make_path(key, val, true)
+    _data[key] = make_path(key, val)
   else
     _data[key] = val
   end

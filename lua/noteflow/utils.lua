@@ -180,7 +180,7 @@ end
 
 function M.assert_fmt(cond, msg, ...)
 	if cond then return end
-	local inspected = F.map(function(x) return vim.inspect(x) end, {...})
+	local inspected = vim.tbl_map(function(x) return vim.inspect(x) end, {...})
 	assert(cond, msg:format(unpack(inspected)))
 end
 

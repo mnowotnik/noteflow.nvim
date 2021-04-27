@@ -13,8 +13,8 @@ describe("config.vault_dir", function()
     config.vault_dir = PWD
   end)
 
-  it("should raise an error if set to an nonexistant path", function()
-    assert.falsy(pcall(function() config.vault_dir = '/foo/bar/baz' end))
+  it("should not raise an error if set to an nonexistant path", function()
+    assert.truthy(pcall(function() config.vault_dir = '/foo/bar/baz' end))
   end)
 end)
 
@@ -29,8 +29,8 @@ describe("config.setup()", function()
     assert.truthy(pcall(config.setup, {vault_dir = PWD}))
   end)
 
-  it("requires templates_dir to exist", function()
-    assert.falsy(pcall(config.setup, {vault_dir = PWD, templates_dir='/foo/bar/baz'}))
+  it("does not require templates_dir to exist", function()
+    assert.truthy(pcall(config.setup, {vault_dir = PWD, templates_dir='/foo/bar/baz'}))
     assert.truthy(pcall(config.setup,
       {vault_dir = abs_fixtures_path('config'),
       templates_dir= abs_fixtures_path('config/my_templates')}))
@@ -38,7 +38,6 @@ describe("config.setup()", function()
   end)
 
   it("should accept a templates path relative to the vault path", function()
-    assert.falsy(pcall(config.setup, {vault_dir = PWD, templates_dir='baz'}))
     assert.truthy(pcall(config.setup,
       {vault_dir = abs_fixtures_path('config'),
       templates_dir= 'my_templates'}))
