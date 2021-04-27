@@ -54,28 +54,26 @@ function mt.__newindex(_, key, val)
 end
 
 function config.setup(opts)
-  config.make_note_slug = opts.make_note_slug
-  config.make_daily_slug = opts.make_daily_slug
-  config.vault_dir = opts.vault_dir
-  config.daily_template = opts.daily_template
-  config.default_template = opts.default_template
-  if opts.templates_dir then
-    config.templates_dir = opts.templates_dir
-  else
-    _data.templates_dir = make_path(TEMPLATES_DIR, DEFAULT_TMPL_DIR, false)
-  end
-
-  if opts.daily_dir then
-    config.daily_dir = opts.daily_dir
-  else
-    _data.daily_dir = DEFAULT_DAILY_DIR
-  end
-	config.on_open = opts.on_open or function() end
-	config.syntax = config.syntax or {}
-	config.syntax = vim.tbl_extend('keep', config.syntax, {
-		wikilink = true,
-		todo = true
-	})
+	local default_opts = {
+		vault_dir = nil,
+		templates_dir = DEFAULT_TMPL_DIR,
+		daily_dir = DEFAULT_DAILY_DIR,
+		daily_template = nil,
+		default_template = nil,
+		syntax = {
+			wikilink = true,
+			todo = true
+		},
+		on_open = function() end,
+		update_modified_on_save = true,
+		make_note_slug = nil,
+		make_daily_slug = nil,
+	}
+	opts = vim.tbl_deep_extend('keep', {}, opts)
+	opts = vim.tbl_deep_extend('keep', opts, default_opts)
+	for name,val in pairs(opts) do
+		config[name] = val
+	end
 end
 
 function config.find_command(opts)
