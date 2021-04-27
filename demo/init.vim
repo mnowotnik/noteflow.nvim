@@ -19,11 +19,22 @@ lua << EOF
 require('noteflow'):setup({
   vault_dir = require('os').getenv('PWD') .. '/demo',
   on_open = function(bufnr)
-    vim.api.nvim_exec([=[
+      vim.api.nvim_exec([=[
       setl omnifunc=v:lua.noteflow_omnifunc
-      nn <buffer> <silent> <C-]> :lua require('noteflow').follow_wikilink()<cr>
-    ]=], false)
-  end
+      nn <buffer> <silent> <C-]> :NoteflowFollowWikilink<cr>
+
+      set nonumber
+      set norelativenumber
+      set signcolumn=yes:1
+      hi SignColumn guibg=bg
+      ]=], false)
+  end,
+
+  syntax = {
+      todo = true,
+      wikilink = true,
+      fenced_block_overlay = true -- false by default
+  }
 })
 
 -- example Telescope configuration

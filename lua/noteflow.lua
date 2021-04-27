@@ -7,7 +7,7 @@ local pickers = require('telescope.pickers')
 local finders = require('telescope.finders')
 local telescope_conf = require('telescope.config').values
 local sorters = require('telescope.sorters')
-local _, devicons = pcall(require,'nvim-web-devicons')
+local has_devicons, devicons = pcall(require,'nvim-web-devicons')
 
 local config = require('noteflow.config')
 local custom_finders = require('noteflow.custom_finders')
@@ -578,7 +578,7 @@ local function redraw_line(linenr, line, y)
     local virt_text = {}
     local lang = line:match('```([^ {]+)')
     local offset
-    if devicons and lang then
+    if has_devicons and lang then
       local icon, hl_group = devicons.get_icon(nil, lang_to_ext[lang], {default=true})
       offset = 2
       table.insert(virt_text, {icon .. " ", hl_group})
