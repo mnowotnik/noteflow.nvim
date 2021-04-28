@@ -210,7 +210,7 @@ function M.exec(src)
 end
 
 function M.set_line(linenr, line)
-	vim.api.nvim_buf_set_lines(0,linenr-1,linenr-1,true,{line})
+	vim.api.nvim_buf_set_lines(0,linenr-1,linenr,true,{line})
 end
 
 function M.buf_path(bufnr)

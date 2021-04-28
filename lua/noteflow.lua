@@ -689,8 +689,7 @@ function M:rename_note(new_title)
   for _,note in pairs(cache) do
     if note:has_wikilinks_to(old_title) then
       vim.api.nvim_command('e ' .. vim.fn.fnameescape(note.path))
-      -- TODO better to leave buffers opened and modified
-      vim.api.nvim_command([[silent %s/\v\[\[\s*]] .. old_title .. [[\s*(\|[^|]+)?\]\]/\[\[]] .. new_title .. [[\2\]\]/g | silent update | bd]])
+      vim.api.nvim_command([[%s/\v\[\[\s*]] .. old_title .. [[\s*(\|[^|]+)?\]\]/\[\[]] .. new_title .. [[\1\]\]/g]])
     end
   end
   vim.cmd('buffer ' .. bufnr)
