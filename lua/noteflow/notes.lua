@@ -209,7 +209,11 @@ local make_note_path = function(folder, title)
   if config.make_note_slug then
     slug = config.make_note_slug(title)
   end
-	return path:new(config.vault_dir , folder , (slug .. '.md'))
+  if path:new(folder):is_absolute() then
+    return path:new(folder, (slug .. '.md'))
+  else
+    return path:new(config.vault_dir , folder , (slug .. '.md'))
+  end
 end
 
 M._make_note_path = make_note_path
