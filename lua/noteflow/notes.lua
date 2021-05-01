@@ -14,7 +14,6 @@ local set_to_arr = utils.set_to_arr
 local FRONTMATTER_BOUNDARY = '---'
 local INLINE_TAG_PATTERN = '#([%w%-/]+)'
 local INLINE_TITLE_PATTERN = '^#%s+(.+[^%s])%s*$'
-local INLINE_WIKILINK_PATTERN = '%[%[%s*(.+)%s*%]%]'
 local M = {}
 
 local Note = {}

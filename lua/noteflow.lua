@@ -353,7 +353,7 @@ function M:follow_wikilink()
 
   local link = wikilink.link:lower()
   if vim.trim(link) == "" then return end
-  for fn, meta in pairs(cache) do
+  for fn, meta in pairs(cache.notes) do
     if meta.title:lower() == link then
       log.fmt_debug("Opening note for wikilink: %s", fn)
       utils.open_file(fn)
@@ -686,7 +686,7 @@ function M:rename_note(new_title)
 
   cache:refresh()
   local bufnr = vim.fn.bufnr()
-  for _,note in pairs(cache) do
+  for _,note in pairs(cache.notes) do
     if note:has_wikilinks_to(old_title) then
       vim.api.nvim_command('e ' .. vim.fn.fnameescape(note.path))
       vim.api.nvim_command([[%s/\v\[\[\s*]] .. old_title .. [[\s*(\|[^|]+)?\]\]/\[\[]] .. new_title .. [[\1\]\]/g]])

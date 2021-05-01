@@ -27,7 +27,7 @@ function M.note_finder(opts)
       on_stdout = function(_, line, _)
         if not line or line == "" then return end
         local fn, title = unpack(vim.split(line, ':'))
-        local note = cache[fn]
+        local note = cache.notes[fn]
         if #tags > 0 and #note.tags == 0 then return end
         for _, tag in ipairs(tags) do
           local found_tag = false
@@ -56,7 +56,7 @@ function M.note_finder(opts)
       on_exit = function() process_complete() end
     }
     fzf_job:start()
-    for fn, val in pairs(cache) do fzf_job:send(fn .. ':' .. val.title .. '\n') end
+    for fn, val in pairs(cache.notes) do fzf_job:send(fn .. ':' .. val.title .. '\n') end
     fzf_job.stdin:write('\n', function() fzf_job.stdin:close() end)
   end
 

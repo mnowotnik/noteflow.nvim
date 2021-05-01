@@ -2,7 +2,7 @@ local path = require('plenary.path')
 local Job = require('plenary.job')
 
 local utils = require('noteflow.utils')
-local notes = require('noteflow.notes')
+local note = require('noteflow.notes')
 local config = require('noteflow.config')
 local log = utils.log
 
@@ -19,7 +19,9 @@ end
 local mt = {}
 mt.__index = mt
 
-local cache = {}
+local cache = {
+  notes = {}
+}
 
 local already_run = false
 
@@ -28,8 +30,8 @@ function mt:initialized()
 end
 
 function mt:by_title(title)
-  for _,note in pairs(self) do
-    if note.title == title then return note end
+  for _,meta in pairs(self.notes) do
+    if meta.title == title then return meta end
   end
 end
 
@@ -43,6 +45,8 @@ function mt:refresh(opts)
   local processed = 0
   local args = config.find_command()
   local vault_dir = config.vault_dir
+  local new_notes = {}
+  local notes = cache.notes
   local job = Job:new{
     command =  args[1],
     args = vim.list_slice(args, 2),
@@ -54,9 +58,10 @@ function mt:refresh(opts)
         return
       end
       local mt_time = nil
-      if cache[fn] then
+      if notes[fn] then
         mt_time = get_mt_time(fn)
-        local meta = cache[fn]
+        local meta = notes[fn]
+        new_notes[fn] = meta
         if meta.mt_time == mt_time then
           if opts.on_insert then opts.on_insert(meta) end
           return
@@ -64,9 +69,9 @@ function mt:refresh(opts)
       end
       processing = processing + 1
       path:new(fn):read(function(text)
-        local meta = notes.parse_note(text_iterator(text), fn)
+        local meta = note.parse_note(text_iterator(text), fn)
         meta.mt_time = mt_time or get_mt_time(fn)
-        cache[fn] = meta
+        new_notes[fn] = meta
         if opts.on_insert then opts.on_insert(meta) end
         processed = processed + 1
       end)
@@ -80,6 +85,9 @@ function mt:refresh(opts)
   vim.wait(5000, function()
     return processed >= processing
   end,100,true)
+
+  cache.notes = new_notes
+
   if not already_run then
     -- clear command line
     vim.fn.execute[[normal \\<C-l>:\\<C-u>]]
