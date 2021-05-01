@@ -65,8 +65,7 @@ local get_all_tags = function()
         tags[tag] = 1
       end
     end,
-    wait_for_completion = true
-  })
+  }).wait()
   return set_to_arr(tags)
 end
 
@@ -118,21 +117,21 @@ local find_note = function(opts)
 end
 
 local get_vault_folders = function()
-    local vault_dir = config.vault_dir
-    local fd = luv.fs_scandir(vault_dir)
-    if fd == nil then return vault_dir end
-    local result = {}
-    local tmpl_dir = config.templates_dir
-    while true do
-      local name, typ = luv.fs_scandir_next(fd)
-      if name == nil then break end
-      if typ == 'directory'
-        and not vim.startswith(name, ".")
-        and tmpl_dir ~= path:new(vault_dir, name):absolute() then
-        table.insert(result, name)
-      end
+  local vault_dir = config.vault_dir
+  local fd = luv.fs_scandir(vault_dir)
+  if fd == nil then return vault_dir end
+  local result = {}
+  local tmpl_dir = config.templates_dir
+  while true do
+    local name, typ = luv.fs_scandir_next(fd)
+    if name == nil then break end
+    if typ == 'directory'
+      and not vim.startswith(name, ".")
+      and tmpl_dir ~= path:new(vault_dir, name):absolute() then
+      table.insert(result, name)
     end
-    return result
+  end
+  return result
 end
 
 -- TODO move to another module
@@ -159,12 +158,12 @@ end
 local on_choose_from_table_factory = function(args)
   local source = args.source
   local default_prompt = args.default_prompt
-  return function(callback, opts)
+  return utils.async(function(opts)
     opts = opts or {}
+    local cor = coroutine.running()
     local results = source()
     if vim.tbl_count(results) < 2 then
-      callback(results[1])
-      return
+      return results[1]
     end
     pickers.new(opts, {
       prompt_title = default_prompt,
@@ -174,23 +173,21 @@ local on_choose_from_table_factory = function(args)
         actions.select_default:replace(function()
           local selection = action_state.get_selected_entry()
           actions.close(prompt_bufnr)
-          vim.schedule(function()
-            callback(selection.value)
-          end)
+          utils.resume(cor, selection.value)
         end)
         return true
       end
     }):find()
-  end
+    return coroutine.yield()
+  end)
 end
 
 
-local on_choose_template = function(callback, opts)
+local on_choose_template = function(opts)
   opts = opts or {}
   local templates = get_templates()
   if vim.tbl_count(templates) == 1 then
-    callback(templates["default"])
-    return
+    return templates["default"]
   end
   local picker = on_choose_from_table_factory{
     default_prompt='Choose template',
@@ -216,7 +213,7 @@ local on_choose_template = function(callback, opts)
       value=templates[line]
     }
   end
-  picker(callback,opts)
+  return picker(opts)
 end
 
 local on_choose_folder = on_choose_from_table_factory{
@@ -267,8 +264,6 @@ local staged_grep = function(opts)
   opts.entry_maker = make_entry.gen_from_vimgrep(opts)
   opts.min_characters = 1
 
-  local a,b = parse_prompt('foo')
-  print(#a,#b)
   local fzy = require('telescope.algos.fzy')
   pickers.new(opts, {
     prompt_title = 'Notes:staged search',
@@ -327,14 +322,12 @@ function M:staged_grep()
   }
 end
 
-function M:new_note(title)
-  on_choose_template(function(tmpl)
-    on_choose_folder(function(folder)
-      local p = notes.create_note_if_not_exists(folder, title, tmpl)
-      utils.open_file(p, {move_to_end=true})
-    end)
-  end)
-end
+M.new_note = utils.async(function(_, title)
+  local tmpl = on_choose_template()
+  local folder = on_choose_folder()
+  local p = notes.create_note_if_not_exists(folder, title, tmpl)
+  utils.open_file(p, {move_to_end=true})
+end)
 
 function M:_update_modified()
   if not vim.bo.modified then return end
@@ -343,13 +336,13 @@ function M:_update_modified()
   meta:update_modified_curbuf()
 end
 
-function M:follow_wikilink()
+M.follow_wikilink = utils.async(function(self)
   local wikilink = find_wikilink()
   if not wikilink or not wikilink.link then return end
 
   log.fmt_debug("Found wikilink: %s", wikilink.link)
 
-  cache:refresh({wait_for_completion=true})
+  cache:refresh()
 
   local link = wikilink.link:lower()
   if vim.trim(link) == "" then return end
@@ -361,9 +354,8 @@ function M:follow_wikilink()
     end
   end
   log.fmt_debug("No notes found. Creating a new note for wikilink: %s", wikilink.link)
-
   self:new_note(wikilink.link)
-end
+end)
 
 local in_telescope = function()
   return action_state.get_current_picker(vim.api.nvim_get_current_buf()) ~= nil
@@ -667,9 +659,9 @@ function M:_buffer_setup()
     ]=]
   end
   pcall(config.on_open, vim.api.nvim_get_current_buf())
-  if not cache:initialized() then
-    cache:refresh({async=true,silent=true})
-  end
+  -- if not cache:initialized() then
+  --   cache:refresh({async=true,silent=true})
+  -- end
 end
 
 function M:setup(opts)
@@ -679,7 +671,7 @@ function M:setup(opts)
   vim.api.nvim_command(buffer_setup_au)
 end
 
-function M:rename_note(new_title)
+M.rename_note = utils.async(function(_, new_title)
   local cnote = notes.parse_current_buffer()
   local old_title = cnote.title
   if not cnote:change_title_current_buffer(new_title) then return end
@@ -693,7 +685,7 @@ function M:rename_note(new_title)
     end
   end
   vim.cmd('buffer ' .. bufnr)
-end
+end)
 
 function M:preview()
   require('noteflow.preview').open_preview()

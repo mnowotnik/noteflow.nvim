@@ -35,7 +35,7 @@ function mt:by_title(title)
   end
 end
 
-function mt:refresh(opts)
+mt.refresh = utils.async(function(_, opts)
   opts = opts or {}
   local tmpl_dir = config.templates_dir
   if not already_run and not opts.silent then
@@ -47,6 +47,7 @@ function mt:refresh(opts)
   local vault_dir = config.vault_dir
   local new_notes = {}
   local notes = cache.notes
+  local cor = coroutine.running()
   local job = Job:new{
     command =  args[1],
     args = vim.list_slice(args, 2),
@@ -72,27 +73,27 @@ function mt:refresh(opts)
         local meta = note.parse_note(text_iterator(text), fn)
         meta.mt_time = mt_time or get_mt_time(fn)
         new_notes[fn] = meta
-        if opts.on_insert then opts.on_insert(meta) end
+        if opts.on_insert then pcall(opts.on_insert,meta) end
         processed = processed + 1
+        if processed >= processing then
+          cache.notes = new_notes
+          utils.resume(cor)
+        end
       end)
+    end,
+    on_stderr = function(error)
+      print('Error while indexing notes: ' .. error)
+    end,
+    on_exit = function()
+      if processing == 0 then
+        cache.notes = new_notes
+        utils.resume(cor)
+      end
     end
   }
   job:start()
-  if opts.async then
-    return
-  end
-  job:wait(3000, 100)
-  vim.wait(5000, function()
-    return processed >= processing
-  end,100,true)
-
-  cache.notes = new_notes
-
-  if not already_run then
-    -- clear command line
-    vim.fn.execute[[normal \\<C-l>:\\<C-u>]]
-    already_run = true
-  end
-end
+  already_run = true
+  coroutine.yield()
+end)
 
 return setmetatable(cache, mt)

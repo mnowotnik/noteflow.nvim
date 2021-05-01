@@ -5,7 +5,7 @@ set_vault_path_to('find_note')
 local cache = require('noteflow.cache')
 
 describe("when set in .noteflowignore cache ignores", function()
-  cache:refresh()
+  cache:refresh().wait()
   it("directory", function()
     assert.falsy(cache:by_title("ignored"))
   end)

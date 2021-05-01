@@ -111,15 +111,15 @@ function assert_matches_datetime_pattern(val)
 end
 
 function mock_func()
+	local self = {called = false}
   local mt = {
     __call = function(...)
 			local input = {...}
-			local self = table.remove(input, 1)
 			table.remove(input, 1)
       self.called = true
       self.args = input
       if not f then return end
     end
   }
-  return setmetatable({called = false}, mt)
+  return setmetatable(self, mt)
 end

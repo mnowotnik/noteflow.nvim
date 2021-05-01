@@ -9,7 +9,8 @@ local attempt_to_jump = function(initial_file, move_to_word, modifier, modifier_
     if modifier then
       modifier(unpack(vim.tbl_flatten({modifier_args})))
     end
-    vim.cmd[[NoteflowFollowWikilink]]
+    -- vim.cmd[[NoteflowFollowWikilink]]
+    require('noteflow'):follow_wikilink().wait{timeout=500,interval=50}
     return before_fn
 end
 
@@ -180,25 +181,25 @@ describe("Following wikilink should create note on missing target", function()
   it("", function()
     attempt_to_jump("create_on_missing.md", "foobar")
     assert(noteflow.new_note.called)
-    assert.are.same({"foobar"}, noteflow.new_note.args)
+    assert.are.same("foobar", noteflow.new_note.args[2])
   end)
 
   it("when a wikilink has a description part", function()
     attempt_to_jump("create_on_missing.md", "foobar|desc")
     assert(noteflow.new_note.called)
-    assert.are.same({"foobar"}, noteflow.new_note.args)
+    assert.are.same("foobar", noteflow.new_note.args[2])
   end)
 
   it("when a wikilink has a description part and a space in the link", function()
     attempt_to_jump("create_on_missing.md", "foo bar|desc")
     assert(noteflow.new_note.called)
-    assert.are.same({"foo bar"}, noteflow.new_note.args)
+    assert.are.same("foo bar", noteflow.new_note.args[2])
   end)
 
   it("when a wikilink has a description part and a space in the link and the link is capitalized", function()
     attempt_to_jump("create_on_missing.md", "Foo bar|desc")
     assert(noteflow.new_note.called)
-    assert.are.same({"Foo bar"}, noteflow.new_note.args)
+    assert.are.same("Foo bar", noteflow.new_note.args[2])
   end)
   vim.wait(100)
 end)

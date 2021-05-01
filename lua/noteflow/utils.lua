@@ -222,30 +222,59 @@ end
 -- as:send(), as:close()
 function M.async(fun)
   return function(...)
+    local args = {...}
     local running = coroutine.running()
     if not running then
-      local c = coroutine.create(fun)
+      local promise
+      promise = {
+        result = nil,
+        status = nil,
+        finished = false,
+        on_complete = nil,
+        wait = function(opts)
+          opts = vim.tbl_extend('keep',opts or {}, {timeout=5000,interval=100})
+          vim.wait(opts.timeout, function() return promise.finished end,opts.interval,false)
+        end
+      }
+      local c = coroutine.create(function()
+        local r = {pcall(fun, unpack(args))}
+        if not r[1] then
+          promise.status = 'error'
+          print("Error: " .. r[2])
+        else
+          promise.status = 'success'
+        end
+        promise.result = vim.list_slice(r, 2)
+        promise.finished = true
+        if promise.on_complete then
+          promise.on_complete(unpack(r))
+        end
+      end)
       vim.schedule(function()
         coroutine.resume(c)
       end)
-      return
+      return promise
     end
 
-    local args = {...}
-    local c = coroutine.create(function()
-      local r = {fun(unpack(args))}
-      vim.schedule(function()
-        coroutine.resume(running, unpack(r))
-      end)
-    end)
-    coroutine.resume(c)
-
-    return coroutine.yield()
+    return fun(unpack(args))
   end
 end
 
 function M.tick()
-  return M.async(function() end)
+  local c = coroutine.running()
+  if c then
+    vim.schedule(function()
+      coroutine.resume(c)
+    end)
+    coroutine.yield()
+  end
+end
+
+function M.resume(c, ...)
+  local args = {...}
+  vim.schedule(function()
+    coroutine.resume(c, unpack(args))
+  end)
 end
 
 function M.debounce(fn, ms)
