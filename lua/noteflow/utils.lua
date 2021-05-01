@@ -166,11 +166,11 @@ end
 function M.parse_tags_prompt(prompt)
   if prompt == '#' then return {}, "" end
   local tags = {}
-  for tag in string.gmatch(prompt, '#([%w%-]+)') do
+  for tag in string.gmatch(prompt, '#([%w%-/]+)') do
     table.insert(tags,tag)
   end
   if #tags ~= 0 then
-    prompt = vim.trim(prompt:gsub('#[%w%-]+', ''))
+    prompt = vim.trim(prompt:gsub('#[%w%-/]+', ''))
   end
   if prompt:sub(#prompt-1,#prompt) == ' #' then
     return tags, prompt:sub(1,#prompt-1)
