@@ -439,8 +439,8 @@ function M:daily_note()
   local daily_dir = config.daily_dir
   local templates_dir = config.templates_dir
   local daily_tmpl
-  if templates_dir and cache.daily_template then
-    daily_tmpl = get_templates()[cache.daily_template]
+  if templates_dir and config.daily_template then
+    daily_tmpl = get_templates()[config.daily_template]
     assert(daily_tmpl, 'Daily notes template does not exist!')
   else
     daily_tmpl = DEFAULT_DAILY_TEMPLATE
