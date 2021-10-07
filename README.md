@@ -113,7 +113,7 @@ By using a plugin manager:
 In your neovim lua configuration files add:
 
 ```lua
-require('noteflow').setup({
+require('noteflow'):setup({
     vault_dir = "~/Notes", -- nuff said
 
     -- relative to vault_dir or absolute
