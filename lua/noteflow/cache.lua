@@ -20,7 +20,8 @@ local mt = {}
 mt.__index = mt
 
 local cache = {
-  notes = {}
+  notes = {},
+  notes_list = {}
 }
 
 local already_run = false
@@ -33,6 +34,7 @@ function mt:by_title(title)
   for _,meta in pairs(self.notes) do
     if meta.title == title then return meta end
   end
+  return nil
 end
 
 mt.refresh = utils.async(function(_, opts)
@@ -46,6 +48,7 @@ mt.refresh = utils.async(function(_, opts)
   local args = config.find_command()
   local vault_dir = config.vault_dir
   local new_notes = {}
+  local new_notes_list = {}
   local notes = cache.notes
   local cor = coroutine.running()
   local job = Job:new{
@@ -62,9 +65,10 @@ mt.refresh = utils.async(function(_, opts)
       if notes[fn] then
         mt_time = get_mt_time(fn)
         local meta = notes[fn]
-        new_notes[fn] = meta
         if meta.mt_time == mt_time then
           if opts.on_insert then opts.on_insert(meta) end
+            new_notes[fn] = meta
+            table.insert(new_notes_list, meta)
           return
         end
       end
@@ -73,10 +77,12 @@ mt.refresh = utils.async(function(_, opts)
         local meta = note.parse_note(text_iterator(text), fn)
         meta.mt_time = mt_time or get_mt_time(fn)
         new_notes[fn] = meta
+        table.insert(new_notes_list, meta)
         if opts.on_insert then pcall(opts.on_insert,meta) end
         processed = processed + 1
         if processed >= processing then
           cache.notes = new_notes
+          cache.notes_list = new_notes_list
           utils.resume(cor)
         end
       end)

@@ -1,6 +1,8 @@
 local action_state = require('telescope.actions.state')
 local actions = require('telescope.actions')
 local path = require('plenary.path')
+local async = require('plenary.async')
+local async_util = require('plenary.async.util')
 local scandir = require('plenary.scandir')
 local make_entry = require('telescope.make_entry')
 local pickers = require('telescope.pickers')
@@ -70,40 +72,9 @@ local get_all_tags = function()
 end
 
 local find_note = function(opts)
-  local fzy = require('telescope.algos.fzy')
   pickers.new(opts, {
-    finder = custom_finders.note_finder({cwd=config.vault_dir}),
-    sorter = sorters.Sorter:new {
-      scoring_function = function() return 0 end,
-
-      highlighter = function(_, prompt, display)
-        if display == "" then
-          return {}
-        end
-        local prompt_tags, title_prompt = parse_tags_prompt(prompt)
-        local title, tags = unpack(vim.split(display, '\t'))
-        local hl = fzy.positions(title_prompt, title)
-        -- match tags regardless of order on the prompt line
-        if tags and #prompt_tags > 0 then
-          tags = vim.split(tags, ' ')
-          local tag_offset = #title + 1
-          for _,tag in ipairs(tags) do
-            for _,p_tag in ipairs(prompt_tags) do
-              -- find matching part of escaped tag
-              local startpos,endpos = tag:find(p_tag:gsub('%-','%%-'))
-              if startpos then
-                for i=startpos,endpos do
-                  table.insert(hl, i + tag_offset)
-                end
-                break
-              end
-            end
-            tag_offset = tag_offset + #tag + 1
-          end
-        end
-        return hl
-      end,
-    },
+    finder = custom_finders.note_finder(),
+    sorter = sorters.get_fzy_sorter(),
     previewer = telescope_conf.file_previewer(opts),
     attach_mappings = function(prompt_bufnr, map)
       vim.api.nvim_buf_set_option(prompt_bufnr, 'omnifunc', 'v:lua._noteflow_telescope_omnifunc')
@@ -155,76 +126,69 @@ local get_templates = function()
   return templates
 end
 
-local on_choose_from_table_factory = function(args)
-  local source = args.source
-  local default_prompt = args.default_prompt
-  return utils.async(function(opts)
-    opts = opts or {}
-    local cor = coroutine.running()
-    local results = source()
-    if vim.tbl_count(results) < 2 then
-      return results[1]
+local on_choose_from_table = async.wrap(function(source, opts, callback)
+  local results = source()
+  if vim.tbl_count(results) < 2 then
+    callback(results[1])
+  end
+  pickers.new(opts, {
+    finder = finders.new_table{results=results,entry_maker=opts.entry_maker},
+    sorter = sorters.highlighter_only(),
+    attach_mappings = function(prompt_bufnr)
+      actions.select_default:replace(function()
+        local selection = action_state.get_selected_entry()
+        actions.close(prompt_bufnr)
+        callback(selection.value)
+      end)
+      return true
     end
-    pickers.new(opts, {
-      prompt_title = default_prompt,
-      finder = custom_finders.fzf_finder{results=results,entry_maker=opts.entry_maker},
-      sorter = sorters.highlighter_only(),
-      attach_mappings = function(prompt_bufnr)
-        actions.select_default:replace(function()
-          local selection = action_state.get_selected_entry()
-          actions.close(prompt_bufnr)
-          utils.resume(cor, selection.value)
-        end)
-        return true
-      end
-    }):find()
-    return coroutine.yield()
-  end)
-end
+  }):find()
+end, 3)
 
 
 local on_choose_template = function(opts)
-  opts = opts or {}
   local templates = get_templates()
+  local source = function()
+    local tmpl_names = vim.tbl_keys(templates)
+    local default_template = config.default_template
+    if default_template then
+      table.sort(tmpl_names, function(a,b)
+        if a==default_template then return true end
+        if b==default_template then return false end
+        return a<b
+      end)
+    else
+      table.sort(tmpl_names)
+    end
+    return tmpl_names
+  end
+  opts = opts or {}
   if vim.tbl_count(templates) == 1 then
     return templates["default"]
   end
-  local picker = on_choose_from_table_factory{
-    default_prompt='Choose template',
-    source=function()
-      local tmpl_names = vim.tbl_keys(templates)
-      local default_template = config.default_template
-      if default_template then
-        table.sort(tmpl_names, function(a,b)
-          if a==default_template then return true end
-          if b==default_template then return false end
-          return a<b
-        end)
-      else
-        table.sort(tmpl_names)
-      end
-      return tmpl_names
-    end,
-  }
-  opts.entry_maker = function(line)
-    return {
-      ordinal=line,
-      display=line,
-      value=templates[line]
-    }
-  end
-  return picker(opts)
+  return on_choose_from_table(source, {
+    prompt_title='Choose template',
+    entry_maker = function(line)
+      return {
+        ordinal=line,
+        display=line,
+        value=templates[line]
+      }
+    end
+  })
 end
 
-local on_choose_folder = on_choose_from_table_factory{
-    source=get_vault_folders,
-    default_prompt='Choose folder'}
+local on_choose_folder = function()
+  return on_choose_from_table(get_vault_folders,
+  {prompt_title='Choose folder'})
+end
 
 local M = {}
 
 function M:find_note_by_title()
   -- TODO add sorting by modified
   -- TODO support multiple vaults
+  cache:refresh():wait()
   find_note {
     prompt_title = "Notes",
     width = .25,
@@ -322,9 +286,11 @@ function M:staged_grep()
   }
 end
 
-M.new_note = utils.async(function(_, title)
+M.new_note = async.void(function(_, title)
   local tmpl = on_choose_template()
   local folder = on_choose_folder()
+  async_util.scheduler()
+
   local p = notes.create_note_if_not_exists(folder, title, tmpl)
   utils.open_file(p, {move_to_end=true})
 end)

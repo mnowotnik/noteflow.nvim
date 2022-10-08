@@ -8,17 +8,56 @@ local utils = require('noteflow.utils')
 local parse_tags_prompt = utils.parse_tags_prompt
 local startswith = utils.startswith
 
+local function note_has_any_of_tags(note, tags)
+  if #note.tags == 0 then return false end
+
+  for _, tag in ipairs(tags) do
+    for _, note_tag in pairs(note.tags) do
+      if startswith(note_tag, tag) then
+          return true
+      end
+    end
+  end
+  return false
+end
 
 local M = {}
 
-function M.note_finder(opts)
+function M.note_finder()
+  local entry_maker = function(note)
+    local tag_display = table.concat(
+      vim.tbl_map(function(tag) return '#' .. tag end, note.tags), ' ')
+    return {
+      display = note.title .. ' ' .. tag_display,
+      ordinal = note.title .. ' ' .. tag_display,
+      value = note.path }
+  end
+  local supplier = function(prompt)
+    local tags, _ = parse_tags_prompt(prompt)
+    if #tags == 0 then
+      return cache.notes_list
+    end
+
+    local result = {}
+    for _, note in pairs(cache.notes_list) do
+      if note_has_any_of_tags(note, tags) then
+        table.insert(result, note)
+      end
+    end
+    return result
+  end
+  return finders.new_dynamic({fn=supplier, entry_maker=entry_maker})
+end
+
+function M.note_finder_old(opts)
   opts = opts or {}
   local fzf_args = {'--delimiter', ':', '--with-nth', '-1', '--filter'}
+  local fzf_job
 
   local find = function(finder, raw_prompt, process_result, process_complete)
     local tags, prompt = parse_tags_prompt(raw_prompt)
 
-    local fzf_job = Job:new{
+    fzf_job = Job:new{
       command = 'fzf',
       args = vim.tbl_flatten({fzf_args, prompt or ""}),
       maximum_results = finder.maximum_results,
@@ -60,17 +99,19 @@ function M.note_finder(opts)
     fzf_job.stdin:write('\n', function() fzf_job.stdin:close() end)
   end
 
-  local obj = setmetatable({
+  return setmetatable({
     maximum_results = opts.maximum_results,
   }, {
-    __call = coroutine.wrap(function(...)
+    __call = function(finder, prompt, process_result, process_complete)
+      if fzf_job then
+          fzf_job:close(true)
+      end
+      -- local scheduler = require("plenary.async").util.scheduler
       cache:refresh()
-      find(...)
+      find(finder, prompt, process_result, process_complete)
       while true do find(coroutine.yield()) end
-    end)
+    end
   })
-
-  return obj
 end
 
 function M.fzf_finder(opts)
