@@ -1,7 +1,5 @@
 # Noteflow
 
-> :warning: Do not use. Currently broken due to 3rd party changes. Fix is on the way.
-
 ![scrnshot](https://user-images.githubusercontent.com/8244123/116300920-fc98d080-a78e-11eb-815e-b096f8cbc2bd.png)
 
 Noteflow is a Neovim plugin written in Lua that aims to minimize amount of
